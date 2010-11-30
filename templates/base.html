@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Daily Count</title>
+    <link rel='stylesheet' href='/static/dc.css' type='text/css'/>
+    {% block head %}{% end %}
+  </head>
+	<body>
+		<div id='header'>
+			{% if not current_user %}
+			  <a href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
+			{% else %}
+			  <a href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
+			  :: {{ current_user.nickname() }}
+			{% end %}
+		</div>
+
+		<br/><br/>
+
+		<div id='content'>{% block body %}{% end %}</div>
+		{% block bottom %}{% end %}
+	</body>
+</html>

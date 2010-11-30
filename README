@@ -1,0 +1,15 @@
+AppEngine app using the Tornado framework.
+
+For information about Tornado visit http://www.tornadoweb.org/.
+For information about AppEngine visit http://code.google.com/appengine.
+
+To run this application you will need AppEngine, and to download Tornado, and
+then copy or link the tornado code directory into this directory.
+
+As of this writing, this app is being developed against tornado 1.1.
+
+Much of the structure of this application is based on the tornado appengine
+example found at:
+https://github.com/facebook/tornado/tree/master/demos/appengine/
+
+Small bits of the code were copied directly from the example.
