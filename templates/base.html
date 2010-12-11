@@ -3,22 +3,39 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Daily Count</title>
+    <link rel='stylesheet' href='/static/ui-lightness/jquery-ui-1.8.7.custom.css'/>
     <link rel='stylesheet' href='/static/dc.css' type='text/css'/>
     {% block head %}{% end %}
+    <script src='/static/jquery-1.4.4.min.js'></script>
+    <script src='/static/jquery-ui-1.8.7.custom.min.js'></script>
   </head>
 	<body>
-		<div id='header'>
+		<div id='header' class='small'>
 			{% if not current_user %}
 			  <a href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
 			{% else %}
 			  <a href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
-			  :: {{ current_user.nickname() }}
+			  {% if current_user.administrator %}
+			    :: <a href='/admin'>{{ _('Admin') }}</a>
+			  {% end %}
+			  <div id='user-email'>{{ current_user.email() }}</div>
+			  <br style='clear:both;'/>
 			{% end %}
 		</div>
 
-		<br/><br/>
+		<div class='large' id='title'>Daily Count</div>
 
 		<div id='content'>{% block body %}{% end %}</div>
+
+    <hr/>
+    <div id='footer' class='small'>
+			&copy;2010 &mdash; All Rights Reserved
+		</div>
 		{% block bottom %}{% end %}
+		<script type='text/javascript'>
+      $(document).ready(function() {
+        $('.jquery-button').button();
+      });
+    </script>
 	</body>
 </html>
