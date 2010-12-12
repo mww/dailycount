@@ -60,8 +60,49 @@ figure img {width: 100%;}
 	line-height: 18px;
 }
 
+form#admin-prefs input.submit,
+form#admin-prefs input.text {
+  width: 100%;
+}
+
+form#admin-prefs textarea {
+  width: 100%;
+}
+
 #content {
   padding: 7px;
+}
+
+#counted-types-table {
+  border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+#counted-types-table th {
+  font-size: small;
+  border: 1px solid;
+  padding: 1px;
+}
+
+#counted-types-table td {
+  border: 1px solid;
+  padding: 2px;
+}
+
+#counted-types-table .active {
+  text-align: center;
+  width: 25%;
+}
+
+#counted-types-table .create-new-type {
+  text-align: center;
+}
+
+#counted-types-table .name {
+  width: 75%;
 }
 
 #footer {

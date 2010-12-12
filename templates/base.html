@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Daily Count</title>
+    <title>{{ escape(config_data.title) }}</title>
     <link rel='stylesheet' href='/static/ui-lightness/jquery-ui-1.8.7.custom.css'/>
     <link rel='stylesheet' href='/static/dc.css' type='text/css'/>
     {% block head %}{% end %}
@@ -23,7 +23,7 @@
 			{% end %}
 		</div>
 
-		<div class='large' id='title'>Daily Count</div>
+		<div class='large' id='title'>{{ escape(config_data.title) }}</div>
 
 		<div id='content'>{% block body %}{% end %}</div>
 
@@ -31,11 +31,11 @@
     <div id='footer' class='small'>
 			&copy;2010 &mdash; All Rights Reserved
 		</div>
-		{% block bottom %}{% end %}
 		<script type='text/javascript'>
       $(document).ready(function() {
         $('.jquery-button').button();
       });
     </script>
+    {% block bottom %}{% end %}
 	</body>
 </html>

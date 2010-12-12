@@ -13,8 +13,16 @@ import wsgiref.handlers
 from google.appengine.api import users
 from google.appengine.ext import db
 
+class ConfigurationData(db.Model):
+  title = db.StringProperty(unicode, required=True, multiline=False)
+  description = db.TextProperty(required=True)
+  created = db.DateTimeProperty(auto_now_add=True)
+  last_modified = db.DateTimeProperty(auto_now=True)
+  last_modified_by = db.UserProperty(required=True)
+
+
 class ItemType(db.Model):
-  name = db.StringProperty(required=True)
+  name = db.StringProperty(unicode, required=True, multiline=False)
   active = db.BooleanProperty(required=True)
   created = db.DateTimeProperty(auto_now_add=True)
 
@@ -55,6 +63,19 @@ def administrator(method):
   return wrapper
 
 
+def get_current_config():
+  """Get the current config, or return the defaults."""
+  data = db.Query(ConfigurationData).order('-last_modified').get()
+  if not data:
+    """Set the default configuration data"""
+    title = u'Daily Count'
+    description = u'Track and graph all of your daily bodily functions. \
+Sign in to get started.'
+    data = ConfigurationData(title=title, description=description,
+                             last_modified_by=self.get_current_user())
+  return data
+
+
 class BaseHandler(tornado.web.RequestHandler):
   """Implement base functionality that most handles should have.
 
@@ -79,11 +100,47 @@ class BaseHandler(tornado.web.RequestHandler):
   def get_logout_url(self):
     return users.create_logout_url('/')
 
+  def render_string(self, template_name, **kwargs):
+      data = get_current_config()
+      return tornado.web.RequestHandler.render_string(
+          self, template_name, config_data=data, **kwargs)
+
 
 class AdminHandler(BaseHandler):
   @administrator
   def get(self):
-    self.render('admin.html')
+    data = get_current_config()
+    items = db.Query(ItemType).order('-created').fetch(limit=100)
+    self.render('admin.html', data=data, items=items)
+
+  @administrator
+  def post(self):
+    # TODO(mww): error checking, change if an item is active or not
+    title = self.get_argument('title', None)
+    description = self.get_argument('description', None)
+
+    if title is None or description is None:
+      raise tornado.web.HTTPError(500)
+      return
+
+    data = get_current_config()
+    data.title = title
+    data.description = description
+    data.last_modified_by = self.get_current_user()
+
+    data.put()
+    self.redirect('/admin')
+
+
+class CreateItemTypeHandler(BaseHandler):
+  @administrator
+  def post(self):
+    name = self.get_argument("name", None)
+    if name:
+      name = tornado.escape.xhtml_escape(name.strip())
+      item_type = ItemType(name=name, active=True)
+      item_type.put()
+    self.write(name)
 
 
 class MainHandler(BaseHandler):
@@ -109,6 +166,7 @@ if __name__ == "__main__":
   application = tornado.wsgi.WSGIApplication([
     (r'/', MainHandler),
     (r'/admin', AdminHandler),
+    (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
   ], **settings)
 

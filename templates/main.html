@@ -2,9 +2,7 @@
 
 {% block body %}
 	<div>
-		Track and graph all of your daily bodily function.
-		<a href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
-		to get started.
+	  {{ escape(config_data.description) }}
 
     <div id='get-started'>
 		  <a id='test' class='jquery-button'

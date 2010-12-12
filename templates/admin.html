@@ -1,7 +1,88 @@
 {% extends 'base.html' %}
 
 {% block body %}
-	<div>
-		This is the admin page. You must be an administrator to be here.
-	</div>
+  <form id='admin-prefs' action='/admin' method='post'>
+    <div>Title</div>
+    <div>
+      <input type='text' class='text' name='title'
+             value='{{ escape(data.title) }}'/>
+    </div>
+
+    <div>Home page description</div>
+    <div>
+      <textarea name='description' rows='4'>
+        {{ escape(data.description) }}
+      </textarea>
+    </div>
+
+    <div>Counted types</div>
+    <div>
+      <table id='counted-types-table'>
+        <tr>
+          <th class='name'>Name</th>
+          <th class='active'>Active</th>
+        </tr>
+
+        {% for item in items %}
+          <tr>
+            <td class='name'>{{ escape(item.name) }}</td>
+            <td class='active'>
+              <input type='checkbox' name='{{ escape(item.name) }}'
+                {% if item.active %}
+                  checked='yes'
+                {% end %}
+              />
+            </td>
+          </tr>
+        {% end %}
+
+        <tr>
+          <td colspan='2' class='create-new-type'>
+            <a href='#' class='jquery-button'
+               id='create-item-type-button'>Create counted type</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <input type='submit' class='jquery-button submit' value='Save'/>
+  </form>
+
+  <div id='create-item-type-form' title='Create item type'>
+    <form>
+      <fieldset>
+        <div><label for='name' id='name-label'>Name</label></div>
+        <div><input type='text' name='name' id='name'/></div>
+      </fieldset>
+    </form>
+  </div>
+{% end %}
+
+{% block bottom %}
+<script type='text/javascript'>
+$(document).ready(function() {
+  $('#create-item-type-form').dialog({
+    autoOpen: false,
+    height: 200,
+    width: 350,
+    modal: true,
+    buttons: {
+      Save: function() {
+        var name = $('#create-item-type-form #name').val();
+        $.post('/admin/createitemtype', {name: name}, function(data) {
+          alert('got server response: ' + data);
+        });
+        $(this).dialog('close');
+      },
+      Cancel: function() {
+        $(this).dialog('close');
+      }
+    }
+  });
+
+  $('#create-item-type-button').click(function() {
+    $('#create-item-type-form').dialog('open');
+  });
+});
+</script>
 {% end %}
