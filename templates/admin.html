@@ -70,7 +70,8 @@ $(document).ready(function() {
       Save: function() {
         var name = $('#create-item-type-form #name').val();
         $.post('/admin/createitemtype', {name: name}, function(data) {
-          alert('got server response: ' + data);
+          var last_row = $('#counted-types-table tr').last().prev();
+          last_row.after("<tr><td class='name'>t1</td><td class='active'>t2</td></tr>");
         });
         $(this).dialog('close');
       },

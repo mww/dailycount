@@ -110,7 +110,7 @@ class AdminHandler(BaseHandler):
   @administrator
   def get(self):
     data = get_current_config()
-    items = db.Query(ItemType).order('-created').fetch(limit=100)
+    items = db.Query(ItemType).order('created').fetch(limit=100)
     self.render('admin.html', data=data, items=items)
 
   @administrator
