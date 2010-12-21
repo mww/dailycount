@@ -59,31 +59,5 @@
 {% end %}
 
 {% block bottom %}
-<script type='text/javascript'>
-$(document).ready(function() {
-  $('#create-item-type-form').dialog({
-    autoOpen: false,
-    height: 200,
-    width: 350,
-    modal: true,
-    buttons: {
-      Save: function() {
-        var name = $('#create-item-type-form #name').val();
-        $.post('/admin/createitemtype', {name: name}, function(data) {
-          var last_row = $('#counted-types-table tr').last().prev();
-          last_row.after("<tr><td class='name'>t1</td><td class='active'>t2</td></tr>");
-        });
-        $(this).dialog('close');
-      },
-      Cancel: function() {
-        $(this).dialog('close');
-      }
-    }
-  });
-
-  $('#create-item-type-button').click(function() {
-    $('#create-item-type-form').dialog('open');
-  });
-});
-</script>
+<script type='text/javascript' src='/static/admin.js'></script>
 {% end %}

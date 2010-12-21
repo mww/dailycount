@@ -18,7 +18,7 @@ class ConfigurationData(db.Model):
   description = db.TextProperty(required=True)
   created = db.DateTimeProperty(auto_now_add=True)
   last_modified = db.DateTimeProperty(auto_now=True)
-  last_modified_by = db.UserProperty(required=True)
+  last_modified_by = db.UserProperty()
 
 
 class ItemType(db.Model):
@@ -71,8 +71,7 @@ def get_current_config():
     title = u'Daily Count'
     description = u'Track and graph all of your daily bodily functions. \
 Sign in to get started.'
-    data = ConfigurationData(title=title, description=description,
-                             last_modified_by=self.get_current_user())
+    data = ConfigurationData(title=title, description=description)
   return data
 
 
