@@ -1,7 +1,18 @@
 {% extends 'base.html' %}
 
 {% block body %}
-	<div>
-		This is the home page for a logged in user, nothing else.
-	</div>
+  {% for i in data %}
+    <div class='counter-container'>
+      <div class='counter-title'>Today's {{ escape(i[0]) }} Count</div>
+      <div class='counter-value' id='{{ escape(i[0]) }}'>{{ i[1] }}</div>
+      <div class='counter-increment-container'>
+        <a class='jquery-button counter-increment' href='#'
+           id='{{ escape(i[0]) }}'>+1</a>
+      </div>
+    </div>
+  {% end %}
+{% end %}
+
+{% block bottom %}
+<script type='text/javascript' src='/static/user.js'></script>
 {% end %}

@@ -105,6 +105,35 @@ form#admin-prefs textarea {
   width: 75%;
 }
 
+.counter-container {
+  border-width: 1px;
+  border-style: solid;
+  margin-bottom: .5em;
+}
+
+.counter-increment {
+  width: 100%;
+}
+
+.counter-increment-container {
+  margin: .3em .5em;
+  text-align: center;
+}
+
+.counter-title {
+  font-size: 32px;
+  line-height: 32px;
+  margin: 10px;
+  text-align: center;
+}
+
+.counter-value {
+  font-size: 68px;
+  line-height: 68px;
+  margin: 10px;
+  text-align: center;
+}
+
 #create-item-type-form #name {
   width: 100%;
 }

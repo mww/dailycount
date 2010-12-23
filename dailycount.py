@@ -2,6 +2,7 @@
 #
 # Copyright 2010
 
+import datetime
 import functools
 import logging
 import os.path
@@ -120,6 +121,8 @@ class AdminHandler(BaseHandler):
     ga_account_id = self.get_argument('ga_account_id', None)
 
     if title is None or description is None:
+      logging.error('Both title and description are required params.')
+      # TODO(mww): Find a more specific 500 to serve
       raise tornado.web.HTTPError(500)
       return
 
@@ -131,6 +134,40 @@ class AdminHandler(BaseHandler):
 
     data.put()
     self.redirect('/admin')
+
+
+class CountItemHandler(BaseHandler):
+  @login_required
+  def get(self):
+    type_name = self.get_argument('type', None)
+
+    if type_name is None:
+      logging.error('type pass to CountItemHandler is None')
+      # TODO(mww): Find a more specific 500 to serve
+      raise tornado.web.HTTPError(500)
+      return
+
+    q = db.Query(ItemType).filter('name = ', type_name)
+    q.filter('active = ', True)
+    item_type = q.get()
+    if item_type is None:
+      logging.error('No active type for name "%s" could be found.' % type_name)
+      # TODO(mww): Find a more specific 500 to serve
+      raise tornado.web.HTTPError(500)
+      return
+
+    counted_item = CountedItem(item_type=item_type,
+                               user=self.get_current_user())
+    counted_item.put()
+
+    q = db.Query(CountedItem)
+    q.filter('user =', self.get_current_user())
+    q.filter('item_type =', item_type)
+    q.filter('date >', datetime.date.today())
+    num = q.count()
+    logging.info('added new item of type: %s, new total: %d' %
+        (item_type.name, num))
+    self.write('%d' % num)
 
 
 class CreateItemTypeHandler(BaseHandler):
@@ -156,7 +193,17 @@ class MainHandler(BaseHandler):
 class UserHandler(BaseHandler):
   @login_required
   def get(self):
-    self.render('user.html')
+    count_data = []
+    q = db.Query(ItemType).order('created').filter('active =', True)
+    active_types = q.fetch(limit=5)
+    for item_type in active_types:
+      q = db.Query(CountedItem)
+      q.filter('user =', self.get_current_user())
+      q.filter('item_type =', item_type)
+      q.filter('date >=', datetime.date.today())
+      num = q.count()
+      count_data.append((item_type.name, num))
+    self.render('user.html', data=count_data)
 
 
 if __name__ == "__main__":
@@ -169,6 +216,7 @@ if __name__ == "__main__":
     (r'/admin', AdminHandler),
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
+    (r'/user/countitem', CountItemHandler),
   ], **settings)
 
   wsgiref.handlers.CGIHandler().run(application)
