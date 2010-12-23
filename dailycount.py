@@ -16,6 +16,7 @@ from google.appengine.ext import db
 class ConfigurationData(db.Model):
   title = db.StringProperty(unicode, required=True, multiline=False)
   description = db.TextProperty(required=True)
+  ga_account_id = db.StringProperty(unicode, required=False, multiline=False)
   created = db.DateTimeProperty(auto_now_add=True)
   last_modified = db.DateTimeProperty(auto_now=True)
   last_modified_by = db.UserProperty()
@@ -108,15 +109,15 @@ class BaseHandler(tornado.web.RequestHandler):
 class AdminHandler(BaseHandler):
   @administrator
   def get(self):
-    data = get_current_config()
     items = db.Query(ItemType).order('created').fetch(limit=100)
-    self.render('admin.html', data=data, items=items)
+    self.render('admin.html', items=items)
 
   @administrator
   def post(self):
     # TODO(mww): error checking, change if an item is active or not
     title = self.get_argument('title', None)
     description = self.get_argument('description', None)
+    ga_account_id = self.get_argument('ga_account_id', None)
 
     if title is None or description is None:
       raise tornado.web.HTTPError(500)
@@ -125,6 +126,7 @@ class AdminHandler(BaseHandler):
     data = get_current_config()
     data.title = title
     data.description = description
+    data.ga_account_id = ga_account_id
     data.last_modified_by = self.get_current_user()
 
     data.put()

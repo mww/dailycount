@@ -5,14 +5,24 @@
     <div>Title</div>
     <div>
       <input type='text' class='text' name='title'
-             value='{{ escape(data.title) }}'/>
+             value='{{ escape(config_data.title) }}'/>
     </div>
 
     <div>Home page description</div>
     <div>
       <textarea name='description' rows='4'>
-        {{ escape(data.description) }}
+        {{ escape(config_data.description) }}
       </textarea>
+    </div>
+
+    <div>Google Analytics Account Id</div>
+    <div>
+      {% if config_data.ga_account_id %}
+        <input type='text' class='text' name='ga_account_id'
+               value='{{ escape(config_data.ga_account_id) }}'/>
+      {% else %}
+        <input type='text' class='text' name='ga_account_id' />
+      {% end %}
     </div>
 
     <div>Counted types</div>
