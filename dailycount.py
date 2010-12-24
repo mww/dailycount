@@ -11,6 +11,7 @@ import tornado.web
 import tornado.wsgi
 import wsgiref.handlers
 
+from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
 
@@ -67,14 +68,21 @@ def administrator(method):
 
 def get_current_config():
   """Get the current config, or return the defaults."""
-  data = db.Query(ConfigurationData).order('-last_modified').get()
-  if not data:
-    """Set the default configuration data"""
-    title = u'Daily Count'
-    description = u'Track and graph all of your daily bodily functions. \
-Sign in to get started.'
-    data = ConfigurationData(title=title, description=description)
-  return data
+  data = memcache.get('config_data')
+  if data is not None:
+    return data
+  else:
+    data = db.Query(ConfigurationData).order('-last_modified').get()
+    if data:
+      if not memcache.add('config_data', data, 30):
+        logging.error('error adding config_data to memcache.')
+    else:
+      """Set the default configuration data"""
+      title = u'Daily Count'
+      description = u'Track and graph all of your daily bodily functions. \
+  Sign in to get started.'
+      data = ConfigurationData(title=title, description=description)
+    return data
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -133,6 +141,7 @@ class AdminHandler(BaseHandler):
     data.last_modified_by = self.get_current_user()
 
     data.put()
+    memcache.replace('config_data', data, 30)
     self.redirect('/admin')
 
 
@@ -178,6 +187,7 @@ class CreateItemTypeHandler(BaseHandler):
       name = tornado.escape.xhtml_escape(name.strip())
       item_type = ItemType(name=name, active=True)
       item_type.put()
+      memcache.delete('active_types')
     self.write(name)
 
 
@@ -194,8 +204,12 @@ class UserHandler(BaseHandler):
   @login_required
   def get(self):
     count_data = []
-    q = db.Query(ItemType).order('created').filter('active =', True)
-    active_types = q.fetch(limit=5)
+    active_types = memcache.get('active_types')
+    if active_types is None:
+      q = db.Query(ItemType).order('created').filter('active =', True)
+      active_types = q.fetch(limit=5)
+      if not memcache.add('active_types', active_types, 30):
+        logging.error('Error adding active_types to memcache.')
     for item_type in active_types:
       q = db.Query(CountedItem)
       q.filter('user =', self.get_current_user())
