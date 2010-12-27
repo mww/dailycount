@@ -278,7 +278,7 @@ class UserOptionsHandler(BaseHandler):
   @login_required
   def get(self):
     options = get_user_options(self.get_current_user())
-    self.render('options.html', timezone=options.timezone)
+    self.render('options.html')
 
   @login_required
   def post(self):
