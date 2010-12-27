@@ -155,6 +155,15 @@ form#admin-prefs textarea {
   float: right;
 }
 
+#user-options-button {
+  width: 100%;
+}
+
+#user-options-form #home,
+#user-options-form .submit {
+  width: 100%;
+}
+
 #title {
   text-align: center;
   padding: 7px;

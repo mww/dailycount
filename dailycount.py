@@ -37,6 +37,11 @@ class CountedItem(db.Model):
   date = db.DateTimeProperty(auto_now_add=True)
 
 
+class UserOptions(db.Model):
+  user = db.UserProperty(required=True)
+  timezone = db.StringProperty(unicode, multiline=False)
+
+
 def login_required(method):
   """Decorate with this method to restrict pages to logged in users."""
   @functools.wraps(method)
@@ -76,7 +81,7 @@ def get_current_config():
     data = db.Query(ConfigurationData).order('-last_modified').get()
     if data:
       if not memcache.add('config_data', data, 30):
-        logging.error('error adding config_data to memcache.')
+        logging.error('Error adding config_data to memcache.')
     else:
       """Set the default configuration data"""
       title = u'Daily Count'
@@ -86,13 +91,46 @@ Sign in to get started.'
     return data
 
 
-def get_start_of_day_time():
+def get_user_options(user):
+  """Get the UserOptions for the specified user.
+
+  If there are no UserOptions for the user then create a default set.
+
+  Arguments:
+    user: The user to get the options for.
+
+  Returns: The UserOptions for the specified user.
+  """
+  options = memcache.get('%s-options' % user.email())
+  if options is not None:
+    return options
+
+  options = db.Query(UserOptions).filter('user =', user).get()
+  if options is None:
+    options = UserOptions(user=user)
+    options.timezone = 'US/Pacific' # US/Pacific is the default timezone
+    options.put()
+
+  if not memcache.add('%s-options' % user.email(), options, 30):
+    logging.error('Error adding user options to memcache for %s' % user.email())
+
+  return options
+
+
+def get_start_of_day_time(user):
   """Get the time, in UTC, of the start of the day of the user's timezone.
+
+  Arguments:
+    user: The user to get start of day time for.
 
   Returns: datetime of the start of the day for the user's timezone.
   """
-  # TODO(mww): Get the timezone from a property, not hard coded.
-  timezone = pytz.timezone('US/Pacific')
+  options = get_user_options(user)
+  timezone = pytz.timezone(options.timezone)
+  if timezone is None:
+    logging.error('User %s has an invalid timezone: %s. Using US/Pacific.' %
+        (user.nickname(), options.timezone))
+    timezone = pytz.timezone('US/Pacific')
   current_time = datetime.datetime.now(tz=timezone)
   start_of_day = datetime.datetime.combine(current_time.date(),
       datetime.time(0, 0, 0, 0)).replace(tzinfo=timezone)
@@ -179,14 +217,14 @@ class CountItemHandler(BaseHandler):
       raise tornado.web.HTTPError(500)
       return
 
-    counted_item = CountedItem(item_type=item_type,
-                               user=self.get_current_user())
+    user = self.get_current_user()
+    counted_item = CountedItem(item_type=item_type, user=user)
     counted_item.put()
 
     q = db.Query(CountedItem)
-    q.filter('user =', self.get_current_user())
+    q.filter('user =', user)
     q.filter('item_type =', item_type)
-    q.filter('date >', get_start_of_day_time())
+    q.filter('date >', get_start_of_day_time(user))
     num = q.count()
     logging.info('added new item of type: %s, new total: %d' %
         (item_type.name, num))
@@ -225,14 +263,60 @@ class UserHandler(BaseHandler):
       if not memcache.add('active_types', active_types, 30):
         logging.error('Error adding active_types to memcache.')
 
+    user = self.get_current_user()
     for item_type in active_types:
       q = db.Query(CountedItem)
-      q.filter('user =', self.get_current_user())
+      q.filter('user =', user)
       q.filter('item_type =', item_type)
-      q.filter('date >=', get_start_of_day_time())
+      q.filter('date >=', get_start_of_day_time(user))
       num = q.count()
       count_data.append((item_type.name, num))
     self.render('user.html', data=count_data)
+
+
+class UserOptionsHandler(BaseHandler):
+  @login_required
+  def get(self):
+    options = get_user_options(self.get_current_user())
+    self.render('options.html', timezone=options.timezone)
+
+  @login_required
+  def post(self):
+    user = self.get_current_user()
+    timezone = self.get_argument('timezone', 'US/Pacific')
+    logging.info('timezone for user %s set to %s' % (user.nickname(), timezone))
+    options = get_user_options(user)
+    options.timezone = timezone
+    options.put()
+    if not memcache.delete('%s-options' % user.email()):
+      logging.error('Error deleting user options from memcache for user %s.' %
+          user.email())
+    self.redirect('/user/options')
+
+
+class UserTimeZonesHandler(BaseHandler):
+  @login_required
+  def get(self):
+    """Return the supported time zones and the current users timezone.
+
+    The results are returned in a JSON format that looks like:
+    {
+      "user_timezone": "US/Pacific",
+      "timezones": ["Africa/Abidjan", "Africa/Accra", ...]
+    }
+
+    Returns: JSON formatted list of supported time zones, and the user's
+             selection.
+    """
+    timezones = memcache.get('timezones')
+    if timezones is None:
+      timezones = '[%s]' % ','.join('"%s"' %  x for x in pytz.common_timezones)
+      if not memcache.add('timezones', timezones, 60):
+        logging.error('Error adding timezones to memcache.')
+
+    options = get_user_options(self.get_current_user())
+    self.write('{"user_timezone": "%s", "timezones": %s}' %
+        (options.timezone, timezones))
 
 
 if __name__ == "__main__":
@@ -246,6 +330,8 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
+    (r'/user/options/?', UserOptionsHandler),
+    (r'/user/options/timezones/?', UserTimeZonesHandler),
   ], **settings)
 
   wsgiref.handlers.CGIHandler().run(application)
