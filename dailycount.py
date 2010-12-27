@@ -6,6 +6,7 @@ import datetime
 import functools
 import logging
 import os.path
+import pytz
 import tornado.locale
 import tornado.web
 import tornado.wsgi
@@ -80,9 +81,22 @@ def get_current_config():
       """Set the default configuration data"""
       title = u'Daily Count'
       description = u'Track and graph all of your daily bodily functions. \
-  Sign in to get started.'
+Sign in to get started.'
       data = ConfigurationData(title=title, description=description)
     return data
+
+
+def get_start_of_day_time():
+  """Get the time, in UTC, of the start of the day of the user's timezone.
+
+  Returns: datetime of the start of the day for the user's timezone.
+  """
+  # TODO(mww): Get the timezone from a property, not hard coded.
+  timezone = pytz.timezone('US/Pacific')
+  current_time = datetime.datetime.now(tz=timezone)
+  start_of_day = datetime.datetime.combine(current_time.date(),
+      datetime.time(0, 0, 0, 0)).replace(tzinfo=timezone)
+  return start_of_day.astimezone(pytz.utc)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -172,7 +186,7 @@ class CountItemHandler(BaseHandler):
     q = db.Query(CountedItem)
     q.filter('user =', self.get_current_user())
     q.filter('item_type =', item_type)
-    q.filter('date >', datetime.date.today())
+    q.filter('date >', get_start_of_day_time())
     num = q.count()
     logging.info('added new item of type: %s, new total: %d' %
         (item_type.name, num))
@@ -210,11 +224,12 @@ class UserHandler(BaseHandler):
       active_types = q.fetch(limit=5)
       if not memcache.add('active_types', active_types, 30):
         logging.error('Error adding active_types to memcache.')
+
     for item_type in active_types:
       q = db.Query(CountedItem)
       q.filter('user =', self.get_current_user())
       q.filter('item_type =', item_type)
-      q.filter('date >=', datetime.date.today())
+      q.filter('date >=', get_start_of_day_time())
       num = q.count()
       count_data.append((item_type.name, num))
     self.render('user.html', data=count_data)
