@@ -33,6 +33,7 @@ class ItemType(db.Model):
 class CountedItem(db.Model):
   item_type = db.ReferenceProperty(ItemType)
   user = db.UserProperty(required=True)
+  comment = db.StringProperty(unicode, required=False, multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
 
 
@@ -147,9 +148,10 @@ class AdminHandler(BaseHandler):
 
 class CountItemHandler(BaseHandler):
   @login_required
-  def get(self):
+  def post(self):
     type_name = self.get_argument('type', None)
-
+    comment = self.get_argument('comment', None)
+    
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
       # TODO(mww): Find a more specific 500 to serve
@@ -166,7 +168,8 @@ class CountItemHandler(BaseHandler):
       return
 
     counted_item = CountedItem(item_type=item_type,
-                               user=self.get_current_user())
+                               user=self.get_current_user(),
+                               comment=comment)
     counted_item.put()
 
     q = db.Query(CountedItem)
@@ -174,8 +177,34 @@ class CountItemHandler(BaseHandler):
     q.filter('item_type =', item_type)
     q.filter('date >', datetime.date.today())
     num = q.count()
-    logging.info('added new item of type: %s, new total: %d' %
-        (item_type.name, num))
+    logging.info('added new item of type: %s, comment: %s, new total: %d' %
+        (item_type.name, comment, num))
+    self.write('%d' % num)
+    
+  @login_required
+  def get(self):
+    type_name = self.get_argument('type', None)
+    
+    if type_name is None:
+      logging.error('type pass to CountItemHandler is None')
+      # TODO(mww): Find a more specific 500 to serve
+      raise tornado.web.HTTPError(500)
+      return
+
+    q = db.Query(ItemType).filter('name = ', type_name)
+    q.filter('active = ', True)
+    item_type = q.get()
+    if item_type is None:
+      logging.error('No active type for name "%s" could be found.' % type_name)
+      # TODO(mww): Find a more specific 500 to serve
+      raise tornado.web.HTTPError(500)
+      return
+
+    q = db.Query(CountedItem)
+    q.filter('user =', self.get_current_user())
+    q.filter('item_type =', item_type)
+    q.filter('date >', datetime.date.today())
+    num = q.count()
     self.write('%d' % num)
 
 
