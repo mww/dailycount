@@ -274,6 +274,22 @@ class UserHandler(BaseHandler):
     self.render('user.html', data=count_data)
 
 
+class UserHistoryHandler(BaseHandler):
+  @login_required
+  def get(self):
+    user = self.get_current_user()
+    options = get_user_options(user)
+    timezone = pytz.timezone(options.timezone)
+    q = db.Query(CountedItem).order('-date').filter('user =', user)
+    history = q.fetch(limit=20)
+    h = []
+    for i in history:
+      date = i.date.replace(tzinfo=pytz.utc).astimezone(timezone)
+      date = date.strftime('%c')
+      h.append((date, i.item_type.name))
+    self.render('history.html', history=h)
+
+
 class UserOptionsHandler(BaseHandler):
   @login_required
   def get(self):
@@ -330,6 +346,7 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
+    (r'/user/history/?', UserHistoryHandler),
     (r'/user/options/?', UserOptionsHandler),
     (r'/user/options/timezones/?', UserTimeZonesHandler),
   ], **settings)

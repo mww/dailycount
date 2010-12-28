@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  {% for item in history %}
+    <div>* {{ item[0] }} -- {{ item[1] }}</div>
+  {% end %}
+{% end %}
