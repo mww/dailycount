@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  {% for item in history %}
-    <div>* {{ item[0] }} -- {{ item[1] }}</div>
+  <a href='/' class='jquery-button' id='history-home-button'>Home</a>
+  <div class='history-title'>History</div>
+  {% for key in dates %}
+    <div class='history-day'>
+      <div class='history-day-title'>{{ escape(key) }}</div>
+      {% for item in history[key] %}
+        <div class='history-day-item'>
+          {{ escape(item[1]) }} &mdash; {{ escape(item[0]) }}
+        </div>
+      {% end %}
+    </div>
   {% end %}
 {% end %}

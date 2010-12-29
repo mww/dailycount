@@ -282,12 +282,17 @@ class UserHistoryHandler(BaseHandler):
     timezone = pytz.timezone(options.timezone)
     q = db.Query(CountedItem).order('-date').filter('user =', user)
     history = q.fetch(limit=20)
-    h = []
-    for i in history:
-      date = i.date.replace(tzinfo=pytz.utc).astimezone(timezone)
-      date = date.strftime('%c')
-      h.append((date, i.item_type.name))
-    self.render('history.html', history=h)
+    dates = []
+    items = {}
+    for item in history:
+      datetime = item.date.replace(tzinfo=pytz.utc).astimezone(timezone)
+      date_str = datetime.strftime('%A %B %d, %Y')
+      time_str = datetime.strftime('%I:%M %p')
+      if not date_str in items:
+        dates.append(date_str)
+        items[date_str] = []
+      items[date_str].append((time_str, item.item_type.name))
+    self.render('history.html', dates=dates, history=items)
 
 
 class UserOptionsHandler(BaseHandler):
