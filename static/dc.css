@@ -235,7 +235,7 @@ body {
 		-webkit-text-size-adjust: 100%;
 	}
 
-	.history-day-item {
+  .history-day-item {
     margin-left: .5em;
-	}
+  }
 }
