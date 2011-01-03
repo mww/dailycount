@@ -306,7 +306,8 @@ class UserHistoryHandler(BaseHandler):
       if not date_str in items:
         dates.append(date_str)
         items[date_str] = []
-      items[date_str].append((time_str, item.item_type.name, item.key().id()))
+      items[date_str].append({'time': time_str, 'id': item.key().id(),
+          'type_name': item.item_type.name, 'comment': item.comment})
     self.render('history.html', dates=dates, history=items)
 
 
