@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
 
 {% block body %}
+  <div id='increment_count_lightbox' title='Increment Count'>
+    <form name='increment_form'>
+      <div>Add a comment (optional)</div>
+      <div><textarea name='comment' id='comment' rows='5' cols="30"></textarea></div>
+    </form>
+  </div>
   {% for i in data %}
-    <div class='counter-container'>
-      <div class='counter-title'>Today's {{ escape(i[0]) }} Count</div>
-      <div class='counter-value' id='{{ escape(i[0]) }}'>{{ i[1] }}</div>
-      <div class='counter-increment-container'>
-        <a class='jquery-button counter-increment' id='{{ escape(i[0]) }}'>+1</a>
+    <div class='counter_container'>
+      <div class='counter_title'>Today's {{ escape(i[0]) }} Count</div>
+      <div class='counter_value' id='{{ escape(i[0]) }}'>{{ i[1] }}</div>
+      <div class='counter_increment_container' id='{{ escape(i[0]) }}'>
+        <a class='jquery_button counter_increment'
+           id='{{ escape(i[0]) }}'>+1</a>
+        <a class='jquery_button counter_increment_with_comment'
+           id='{{ escape(i[0]) }}'>+1...</a>
       </div>
     </div>
   {% end %}

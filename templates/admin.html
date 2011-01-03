@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  <form id='admin-prefs' action='/admin' method='post'>
+  <form id='admin_prefs' action='/admin' method='post'>
     <div>Title</div>
     <div>
       <input type='text' class='text' name='title'
@@ -27,7 +27,7 @@
 
     <div>Counted types</div>
     <div>
-      <table id='counted-types-table'>
+      <table id='counted_types_table'>
         <tr>
           <th class='name'>Name</th>
           <th class='active'>Active</th>
@@ -47,21 +47,21 @@
         {% end %}
 
         <tr>
-          <td colspan='2' class='create-new-type'>
-            <a href='#' class='jquery-button'
-               id='create-item-type-button'>Create counted type</a>
+          <td colspan='2' class='create_new_type'>
+            <a href='#' class='jquery_button'
+               id='create_item_type_button'>Create counted type</a>
           </td>
         </tr>
       </table>
     </div>
 
-    <input type='submit' class='jquery-button submit' value='Save'/>
+    <input type='submit' class='jquery_button submit' value='Save'/>
   </form>
 
-  <div id='create-item-type-form' title='Create item type'>
+  <div id='create_item_type_form' title='Create item type'>
     <form>
       <fieldset>
-        <div><label for='name' id='name-label'>Name</label></div>
+        <div><label for='name' id='name_label'>Name</label></div>
         <div><input type='text' name='name' id='name'/></div>
       </fieldset>
     </form>

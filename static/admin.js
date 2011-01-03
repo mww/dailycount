@@ -1,12 +1,12 @@
 $(document).ready(function() {
-  $('#create-item-type-form').dialog({
+  $('#create_item_type_form').dialog({
     autoOpen: false,
     height: 200,
     width: 350,
     modal: true,
     buttons: {
       Save: function() {
-        var name = $('#create-item-type-form #name').val();
+        var name = $('#create_item_type_form #name').val();
         $.post('/admin/createitemtype', {name: name}, function(data) {
           row = $('<tr></tr>');
           row.append('<td class="name">' + data + '</td>');
@@ -16,20 +16,20 @@ $(document).ready(function() {
           td.append(input);
           row.append(td);
 
-          var last_row = $('#counted-types-table tr').last().prev();
+          var last_row = $('#counted_types_table tr').last().prev();
           last_row.after(row);
         });
         $(this).dialog('close');
-        $('#create-item-type-form #name').val('');
+        $('#create_item_type_form #name').val('');
       },
       Cancel: function() {
         $(this).dialog('close');
-        $('#create-item-type-form #name').val('');
+        $('#create_item_type_form #name').val('');
       }
     }
   });
 
-  $('#create-item-type-button').click(function() {
-    $('#create-item-type-form').dialog('open');
+  $('#create_item_type_button').click(function() {
+    $('#create_item_type_form').dialog('open');
   });
 });
