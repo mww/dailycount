@@ -243,6 +243,19 @@ class CreateItemTypeHandler(BaseHandler):
     self.write(name)
 
 
+class DeleteItemHandler(BaseHandler):
+  @login_required
+  def post(self, id):
+    item = CountedItem.get_by_id(int(id))
+    if item.user != self.get_current_user():
+      logging.error('User %s is not the owner for item %s - not deleting' %
+          (self.get_current_user().email(), id))
+      raise tornado.web.HTTPError(401)
+      return
+    item.delete()
+    self.write('OK');
+
+
 class MainHandler(BaseHandler):
   def get(self):
     if self.current_user:
@@ -291,7 +304,7 @@ class UserHistoryHandler(BaseHandler):
       if not date_str in items:
         dates.append(date_str)
         items[date_str] = []
-      items[date_str].append((time_str, item.item_type.name))
+      items[date_str].append((time_str, item.item_type.name, item.key().id()))
     self.render('history.html', dates=dates, history=items)
 
 
@@ -351,6 +364,7 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
+    (r'/user/item/(\d+)/delete', DeleteItemHandler),
     (r'/user/history/?', UserHistoryHandler),
     (r'/user/options/?', UserOptionsHandler),
     (r'/user/options/timezones/?', UserTimeZonesHandler),
