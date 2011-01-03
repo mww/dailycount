@@ -138,6 +138,10 @@ form#admin-prefs textarea {
   width: 100%;
 }
 
+.delete-button {
+  float: right;
+}
+
 #footer {
   text-align: center;
 }
@@ -156,6 +160,7 @@ form#admin-prefs textarea {
 }
 
 .history-day-item {
+  line-height: 2.2em;
   margin-left: 2em;
 }
 
@@ -227,7 +232,6 @@ body {
 @media only screen and (max-width: 479px) {
 
 	body {
-		/*padding: 48px 46px 0;*/
 		width: 228px;
 		-webkit-text-size-adjust: 100%;
 	}
