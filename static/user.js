@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  $('#increment_count_lightbox').dialog({
+  $('#increment_count_form').dialog({
     autoOpen: false,
     height: 310,
     width: 350,
@@ -10,19 +10,19 @@ $(document).ready(function() {
         var comment = document.increment_form.comment.value;
         incrementCounter(type, comment);
         $(this).dialog('close');
-        $('#increment_count_lightbox #comment').val('');
+        $('#increment_count_form #comment').val('');
       },
       Cancel: function() {
         $(this).dialog('close');
-        $('#increment_count_lightbox #comment').val('');
+        $('#increment_count_form #comment').val('');
       }
     }
   });
 
-  $('.counter_increment_with_comment').click(function() {
-    $('#increment_count_lightbox').data('type', $(this).attr('id')).dialog('open');
+  $('.counter_increment_advanced').click(function() {
+    $('#increment_count_form').data('type', $(this).attr('id')).dialog('open');
   });
-  
+
   $('.counter_increment').click(function() {
     incrementCounter($(this).attr('id'));
   });

@@ -115,9 +115,10 @@ form#admin_prefs textarea {
   width: 45%;
 }
 
-.counter_increment_with_comment {
+.counter_increment_advanced {
   width: 45%;
 }
+
 .counter_increment_container {
   margin: .3em .5em;
   text-align: center;
