@@ -230,10 +230,12 @@ body {
 	1     2      3
 	60px  144px  228px	*/
 @media only screen and (max-width: 479px) {
-
 	body {
 		width: 228px;
 		-webkit-text-size-adjust: 100%;
 	}
 
+	.history-day-item {
+    margin-left: .5em;
+	}
 }
