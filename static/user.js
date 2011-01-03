@@ -1,9 +1,8 @@
 $(document).ready(function() {
   $('#increment_count_form').dialog({
     autoOpen: false,
-    height: 310,
-    width: 350,
     modal: true,
+    resizable: false,
     buttons: {
       Save: function() {
         var type = $(this).data('type');
