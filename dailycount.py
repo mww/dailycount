@@ -34,6 +34,7 @@ class ItemType(db.Model):
 class CountedItem(db.Model):
   item_type = db.ReferenceProperty(ItemType)
   user = db.UserProperty(required=True)
+  comment = db.StringProperty(unicode, required=False, multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
 
 
@@ -199,8 +200,9 @@ class AdminHandler(BaseHandler):
 
 class CountItemHandler(BaseHandler):
   @login_required
-  def get(self):
+  def post(self):
     type_name = self.get_argument('type', None)
+    comment = self.get_argument('comment', None)
 
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
@@ -218,7 +220,7 @@ class CountItemHandler(BaseHandler):
       return
 
     user = self.get_current_user()
-    counted_item = CountedItem(item_type=item_type, user=user)
+    counted_item = CountedItem(item_type=item_type, user=user, comment=comment)
     counted_item.put()
 
     q = db.Query(CountedItem)
@@ -226,8 +228,8 @@ class CountItemHandler(BaseHandler):
     q.filter('item_type =', item_type)
     q.filter('date >', get_start_of_day_time(user))
     num = q.count()
-    logging.info('added new item of type: %s, new total: %d' %
-        (item_type.name, num))
+    logging.info('added new item of type: %s, comment: %s, new total: %d' %
+        (item_type.name, comment, num))
     self.write('%d' % num)
 
 
@@ -304,7 +306,8 @@ class UserHistoryHandler(BaseHandler):
       if not date_str in items:
         dates.append(date_str)
         items[date_str] = []
-      items[date_str].append((time_str, item.item_type.name, item.key().id()))
+      items[date_str].append({'time': time_str, 'id': item.key().id(),
+          'type_name': item.item_type.name, 'comment': item.comment})
     self.render('history.html', dates=dates, history=items)
 
 

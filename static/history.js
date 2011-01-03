@@ -1,29 +1,30 @@
 $(document).ready(function() {
   // a workaround for a flaw in the demo system (http://dev.jqueryui.com/ticket/4375), ignore!
   $( "#dialog:ui-dialog" ).dialog( "destroy" );
-  $( ".item-delete-confirm-dialog" ).dialog({
+  $( ".item_details_dialog" ).dialog({
     autoOpen: false,
-    title: "Delete",
+    title: 'Details',
+    width: '25em',
     resizable: false,
     modal: true,
     buttons: {
+    	Close: function() {
+    		$(this).dialog( "close" );
+    	},
     	"Delete": function() {
     	  var id = $(this).data('id');
     	  $.post('/user/item/' + id + '/delete', function(data) {
-    	    $('.history-day-item#' + id).fadeOut('slow', function() {
+    	    $('.history_day_item#' + id).fadeOut('slow', function() {
     	      $(this).detach();
     	    });
     	  });
-    		$(this).dialog( "close" );
-    	},
-    	Cancel: function() {
     		$(this).dialog( "close" );
     	}
     }
   });
 
-  $('.delete-button').click(function() {
+  $('.delete_button').click(function() {
     var id = $(this).parent().attr('id');
-    $('.item-delete-confirm-dialog#dialog-' + id).dialog('open');
+    $('.item_details_dialog#dialog_' + id).dialog('open');
   });
 });
