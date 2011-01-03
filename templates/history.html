@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  <a href='/' class='jquery-button' id='history-home-button'>Home</a>
-  <div class='history-title'>History</div>
+  <a href='/' class='jquery_button' id='history_home_button'>Home</a>
+  <div class='history_title'>History</div>
   {% for key in dates %}
-    <div class='history-day'>
-      <div class='history-day-title'>{{ escape(key) }}</div>
+    <div class='history_day'>
+      <div class='history_day_title'>{{ escape(key) }}</div>
       {% for item in history[key] %}
-        <div class='history-day-item' id='{{ item[2] }}'>
+        <div class='history_day_item' id='{{ item[2] }}'>
           {{ escape(item[1]) }} &mdash; {{ escape(item[0]) }}
-          <a class='jquery-button small delete-button'>Delete</a>
+          <a class='jquery_button small delete_button'>Delete</a>
         </div>
 
-        <div class='item-delete-confirm-dialog' id='dialog-{{ item[2] }}'
+        <div class='item_delete_confirm_dialog' id='dialog_{{ item[2] }}'
              data-id='{{ item[2] }}'>
           Really delete {{ escape(item[1]) }} for {{ escape(key) }} at
           {{ escape(item[0]) }}?

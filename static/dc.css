@@ -141,7 +141,7 @@ form#admin_prefs textarea {
   width: 100%;
 }
 
-.delete-button {
+.delete_button {
   float: right;
 }
 
@@ -158,26 +158,26 @@ form#admin_prefs textarea {
   padding: .5em;
 }
 
-.history-day {
+.history_day {
   padding-bottom: 1em;
 }
 
-.history-day-item {
+.history_day_item {
   line-height: 2.2em;
   margin-left: 2em;
 }
 
-.history-day-title {
+.history_day_title {
   font-size: 20px;
 }
 
-#history-home-button {
+#history_home_button {
   margin-bottom: .75em;
   text-align: center;
   width: 100%;
 }
 
-.history-title {
+.history_title {
   font-size:32px;
   line-height: 32px;
   text-align: center;
@@ -188,17 +188,17 @@ form#admin_prefs textarea {
   float: right;
 }
 
-#user-history-button {
+#user_history_button {
   margin-bottom: .25em;
   width: 100%;
 }
 
-#user-options-button {
+#user_options_button {
   width: 100%;
 }
 
-#user-options-form #home,
-#user-options-form .submit {
+#user_options_form #home,
+#user_options_form .submit {
   width: 100%;
 }
 
@@ -238,7 +238,7 @@ body {
 		-webkit-text-size-adjust: 100%;
 	}
 
-  .history-day-item {
+  .history_day_item {
     margin-left: .5em;
   }
 }

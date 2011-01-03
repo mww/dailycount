@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $.get('/user/options/timezones', function(data) {
     options = JSON.parse(data);
-    var select_option = $('#user-timezone-select');
+    var select_option = $('#user_timezone_select');
     timezones = options['timezones']
     for (i in timezones) {
       var tz = timezones[i];
