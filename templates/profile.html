@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <div>Saved Locations</div>
+  <div>
+    <table id='saved_locations_table'>
+    <tr>
+      <th class='name'>Name</th>
+      <th class='coords'>Coordinates</th>
+    </tr>
+    {% for locationTuple in data['locations'] %}
+      <tr>
+        <td class='name'>{{ locationTuple[0] }}</td>
+        <td class='coords'>{{ locationTuple[1] }}</td>
+      </tr>
+    {% end %}
+    <tr>
+      <td>
+        <a href='#' class='jquery_button create_saved_location_button'>Create saved location</a>
+      </td>
+    </tr>
+    </table>
+  </div>
+  
+  <div id='create_saved_location_lightbox' title='Create saved location'>
+    <form name='create_saved_location_form'>
+      <fieldset>
+        <div><label for='name' id='name_label'>Name</label></div>
+        <div><input type='text' name='name' id='name'/></div>
+        <div><label for='latitude' id='latitude_label'>Latitude</label></div>
+        <div><input type='text' name='latitude' id='latitude'/></div>
+        <div><label for='longitude' id='longitude_label'>Longitude</label></div>
+        <div><input type='text' name='longitude' id='longitude'/></div>
+      </fieldset>
+    </form>
+    <div class='location'>Current location: Searching...</div>
+  </div>
+{% end %}
+
+{% block bottom %}
+<script type='text/javascript' src='/static/geo.min.js'></script>
+<script type='text/javascript' src='/static/profile.js'></script>
+{% end %}

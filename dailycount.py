@@ -35,7 +35,13 @@ class CountedItem(db.Model):
   user = db.UserProperty(required=True)
   comment = db.StringProperty(unicode, required=False, multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
-
+  location = db.StringProperty(unicode, required=False, multiline=False)
+  
+class Location(db.Model):
+  name = db.StringProperty(unicode, required=True, multiline=False)
+  user = db.UserProperty(required=True)
+  geoPt = db.GeoPtProperty(required=True)
+  active = db.BooleanProperty(required=True)
 
 def login_required(method):
   """Decorate with this method to restrict pages to logged in users."""
@@ -151,6 +157,11 @@ class CountItemHandler(BaseHandler):
   def post(self):
     type_name = self.get_argument('type', None)
     comment = self.get_argument('comment', None)
+    longitude = self.get_argument('longitude', None)
+    latitude = self.get_argument('latitude', None)
+    loc = None;
+    if latitude is not None and longitude is not None:
+      loc = db.GeoPt((latitude, longitude));
     
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
@@ -169,7 +180,8 @@ class CountItemHandler(BaseHandler):
 
     counted_item = CountedItem(item_type=item_type,
                                user=self.get_current_user(),
-                               comment=comment)
+                               comment=comment,
+                               location=loc)
     counted_item.put()
 
     q = db.Query(CountedItem)
@@ -177,8 +189,8 @@ class CountItemHandler(BaseHandler):
     q.filter('item_type =', item_type)
     q.filter('date >', datetime.date.today())
     num = q.count()
-    logging.info('added new item of type: %s, comment: %s, new total: %d' %
-        (item_type.name, comment, num))
+    logging.info('added new item of type: %s, comment: %s, loc: %s, new total: %d' %
+        (item_type.name, comment, loc, num))
     self.write('%d' % num)
     
   @login_required
@@ -249,6 +261,34 @@ class UserHandler(BaseHandler):
     self.render('user.html', data=count_data)
 
 
+class LocationHandler(BaseHandler):
+  @login_required
+  def post(self):
+    name = self.get_argument('name', None)
+    longitude = self.get_argument('longitude', None)
+    latitude = self.get_argument('latitude', None)
+    location = Location(name=name,
+                        user=self.get_current_user(),
+                        geoPt=(latitude + ',' + longitude),
+                        active=True)
+    location.put()
+
+
+class ProfileHandler(BaseHandler):
+  @login_required
+  def get(self):
+    q = db.Query(Location)
+    q.filter('user =', self.get_current_user())
+    q.filter('active =', True)
+    dbLocs = q.get()
+    if dbLocs:
+      for loc in dbLocs:
+        locs.append((dbLocs.name, dbLocs.geoPt))
+    else:
+      locs = []
+    self.render('profile.html', data={'locations' : locs})
+
+
 if __name__ == "__main__":
   settings = {
     'template_path': os.path.join(os.path.dirname(__file__), 'templates'),
@@ -260,6 +300,8 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
+    (r'/user/location', LocationHandler),
+    (r'/user/profile', ProfileHandler)
   ], **settings)
 
   wsgiref.handlers.CGIHandler().run(application)
