@@ -6,6 +6,7 @@ import datetime
 import functools
 import logging
 import os.path
+import pytz
 import tornado.locale
 import tornado.web
 import tornado.wsgi
@@ -42,6 +43,11 @@ class Location(db.Model):
   user = db.UserProperty(required=True)
   geoPt = db.GeoPtProperty(required=True)
   active = db.BooleanProperty(required=True)
+
+class UserOptions(db.Model):
+  user = db.UserProperty(required=True)
+  timezone = db.StringProperty(unicode, multiline=False)
+
 
 def login_required(method):
   """Decorate with this method to restrict pages to logged in users."""
@@ -82,14 +88,60 @@ def get_current_config():
     data = db.Query(ConfigurationData).order('-last_modified').get()
     if data:
       if not memcache.add('config_data', data, 30):
-        logging.error('error adding config_data to memcache.')
+        logging.error('Error adding config_data to memcache.')
     else:
       """Set the default configuration data"""
       title = u'Daily Count'
       description = u'Track and graph all of your daily bodily functions. \
-  Sign in to get started.'
+Sign in to get started.'
       data = ConfigurationData(title=title, description=description)
     return data
+
+
+def get_user_options(user):
+  """Get the UserOptions for the specified user.
+
+  If there are no UserOptions for the user then create a default set.
+
+  Arguments:
+    user: The user to get the options for.
+
+  Returns: The UserOptions for the specified user.
+  """
+  options = memcache.get('%s-options' % user.email())
+  if options is not None:
+    return options
+
+  options = db.Query(UserOptions).filter('user =', user).get()
+  if options is None:
+    options = UserOptions(user=user)
+    options.timezone = 'US/Pacific' # US/Pacific is the default timezone
+    options.put()
+
+  if not memcache.add('%s-options' % user.email(), options, 30):
+    logging.error('Error adding user options to memcache for %s' % user.email())
+
+  return options
+
+
+def get_start_of_day_time(user):
+  """Get the time, in UTC, of the start of the day of the user's timezone.
+
+  Arguments:
+    user: The user to get start of day time for.
+
+  Returns: datetime of the start of the day for the user's timezone.
+  """
+  options = get_user_options(user)
+  timezone = pytz.timezone(options.timezone)
+  if timezone is None:
+    logging.error('User %s has an invalid timezone: %s. Using US/Pacific.' %
+        (user.nickname(), options.timezone))
+    timezone = pytz.timezone('US/Pacific')
+  current_time = datetime.datetime.now(tz=timezone)
+  start_of_day = datetime.datetime.combine(current_time.date(),
+      datetime.time(0, 0, 0, 0)).replace(tzinfo=timezone)
+  return start_of_day.astimezone(pytz.utc)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -157,11 +209,12 @@ class CountItemHandler(BaseHandler):
   def post(self):
     type_name = self.get_argument('type', None)
     comment = self.get_argument('comment', None)
-    longitude = self.get_argument('longitude', None)
-    latitude = self.get_argument('latitude', None)
-    loc = None;
-    if latitude is not None and longitude is not None:
-      loc = db.GeoPt((latitude, longitude));
+    location = self.get_argument('location', None)
+    dbLoc = db.Query(Location).filter('name = ', location).get()
+    locName = None
+    if dbLoc:
+      locName = dbLoc.name
+    user = self.get_current_user()
     
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
@@ -181,42 +234,16 @@ class CountItemHandler(BaseHandler):
     counted_item = CountedItem(item_type=item_type,
                                user=self.get_current_user(),
                                comment=comment,
-                               location=loc)
+                               location=locName)
     counted_item.put()
 
     q = db.Query(CountedItem)
-    q.filter('user =', self.get_current_user())
+    q.filter('user =', user)
     q.filter('item_type =', item_type)
-    q.filter('date >', datetime.date.today())
+    q.filter('date >', get_start_of_day_time(user))
     num = q.count()
     logging.info('added new item of type: %s, comment: %s, loc: %s, new total: %d' %
-        (item_type.name, comment, loc, num))
-    self.write('%d' % num)
-    
-  @login_required
-  def get(self):
-    type_name = self.get_argument('type', None)
-    
-    if type_name is None:
-      logging.error('type pass to CountItemHandler is None')
-      # TODO(mww): Find a more specific 500 to serve
-      raise tornado.web.HTTPError(500)
-      return
-
-    q = db.Query(ItemType).filter('name = ', type_name)
-    q.filter('active = ', True)
-    item_type = q.get()
-    if item_type is None:
-      logging.error('No active type for name "%s" could be found.' % type_name)
-      # TODO(mww): Find a more specific 500 to serve
-      raise tornado.web.HTTPError(500)
-      return
-
-    q = db.Query(CountedItem)
-    q.filter('user =', self.get_current_user())
-    q.filter('item_type =', item_type)
-    q.filter('date >', datetime.date.today())
-    num = q.count()
+        (item_type.name, comment, locName, num))
     self.write('%d' % num)
 
 
@@ -230,6 +257,19 @@ class CreateItemTypeHandler(BaseHandler):
       item_type.put()
       memcache.delete('active_types')
     self.write(name)
+
+
+class DeleteItemHandler(BaseHandler):
+  @login_required
+  def post(self, id):
+    item = CountedItem.get_by_id(int(id))
+    if item.user != self.get_current_user():
+      logging.error('User %s is not the owner for item %s - not deleting' %
+          (self.get_current_user().email(), id))
+      raise tornado.web.HTTPError(401)
+      return
+    item.delete()
+    self.write('OK');
 
 
 class MainHandler(BaseHandler):
@@ -251,17 +291,43 @@ class UserHandler(BaseHandler):
       active_types = q.fetch(limit=5)
       if not memcache.add('active_types', active_types, 30):
         logging.error('Error adding active_types to memcache.')
+
+    user = self.get_current_user()
     for item_type in active_types:
       q = db.Query(CountedItem)
-      q.filter('user =', self.get_current_user())
+      q.filter('user =', user)
       q.filter('item_type =', item_type)
-      q.filter('date >=', datetime.date.today())
+      q.filter('date >=', get_start_of_day_time(user))
       num = q.count()
       count_data.append((item_type.name, num))
     self.render('user.html', data=count_data)
 
 
 class LocationHandler(BaseHandler):
+  @login_required
+  def get(self):
+    lat = self.get_argument('latitude', None)
+    lon = self.get_argument('longitude', None)
+    q = db.Query(Location)
+    q.filter('user =', self.get_current_user())
+    q.filter('active =', True)
+    dbLocs = q.fetch(100)
+    locs = [];
+    nearestLoc = None;
+    bestCompare = 10000000;
+    if dbLocs:
+      for loc in dbLocs:
+        locs.append(loc.name)
+        if lat and lon:
+          compare = (abs(float(lat)-loc.geoPt.lat) + abs(float(lon)-loc.geoPt.lon))
+          if compare < bestCompare:
+            bestCompare = compare
+            nearestLoc = loc.name
+        
+    locsStr = '[%s]' % ','.join('"%s"' %  x for x in locs)
+    self.write('{"user_location": "%s", "locations": %s}' %
+        (nearestLoc, locsStr))
+    
   @login_required
   def post(self):
     name = self.get_argument('name', None)
@@ -280,15 +346,75 @@ class ProfileHandler(BaseHandler):
     q = db.Query(Location)
     q.filter('user =', self.get_current_user())
     q.filter('active =', True)
-    dbLocs = q.get()
+    dbLocs = q.fetch(100)
+    locs = [];
     if dbLocs:
       for loc in dbLocs:
-        locs.append((dbLocs.name, dbLocs.geoPt))
-    else:
-      locs = []
-    self.render('profile.html', data={'locations' : locs})
+        locs.append((loc.name, loc.geoPt))
+    options = get_user_options(self.get_current_user())
+    self.render('profile.html', data={'locations' : locs, 'options' : options})
+    
+  @login_required
+  def post(self):
+    user = self.get_current_user()
+    timezone = self.get_argument('timezone', 'US/Pacific')
+    logging.info('timezone for user %s set to %s' % (user.nickname(), timezone))
+    options = get_user_options(user)
+    options.timezone = timezone
+    options.put()
+    if not memcache.delete('%s-options' % user.email()):
+      logging.error('Error deleting user options from memcache for user %s.' %
+          user.email())
+    self.redirect('/user/profile')
 
 
+class UserHistoryHandler(BaseHandler):
+  @login_required
+  def get(self):
+    user = self.get_current_user()
+    options = get_user_options(user)
+    timezone = pytz.timezone(options.timezone)
+    q = db.Query(CountedItem).order('-date').filter('user =', user)
+    history = q.fetch(limit=20)
+    dates = []
+    items = {}
+    for item in history:
+      datetime = item.date.replace(tzinfo=pytz.utc).astimezone(timezone)
+      date_str = datetime.strftime('%A %B %d, %Y')
+      time_str = datetime.strftime('%I:%M %p')
+      if not date_str in items:
+        dates.append(date_str)
+        items[date_str] = []
+      items[date_str].append({'time': time_str, 'id': item.key().id(),
+          'type_name': item.item_type.name, 'comment': item.comment, 'location': item.location})
+    self.render('history.html', dates=dates, history=items)
+
+
+class UserTimeZonesHandler(BaseHandler):
+  @login_required
+  def get(self):
+    """Return the supported time zones and the current users timezone.
+
+    The results are returned in a JSON format that looks like:
+    {
+      "user_timezone": "US/Pacific",
+      "timezones": ["Africa/Abidjan", "Africa/Accra", ...]
+    }
+
+    Returns: JSON formatted list of supported time zones, and the user's
+             selection.
+    """
+    timezones = memcache.get('timezones')
+    if timezones is None:
+      timezones = '[%s]' % ','.join('"%s"' %  x for x in pytz.common_timezones)
+      if not memcache.add('timezones', timezones, 60):
+        logging.error('Error adding timezones to memcache.')
+
+    options = get_user_options(self.get_current_user())
+    self.write('{"user_timezone": "%s", "timezones": %s}' %
+        (options.timezone, timezones))
+    
+    
 if __name__ == "__main__":
   settings = {
     'template_path': os.path.join(os.path.dirname(__file__), 'templates'),
@@ -301,7 +427,10 @@ if __name__ == "__main__":
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
     (r'/user/location', LocationHandler),
-    (r'/user/profile', ProfileHandler)
+    (r'/user/profile', ProfileHandler),
+    (r'/user/item/(\d+)/delete', DeleteItemHandler),
+    (r'/user/history/?', UserHistoryHandler),
+    (r'/user/profile/timezones/?', UserTimeZonesHandler),
   ], **settings)
 
   wsgiref.handlers.CGIHandler().run(application)

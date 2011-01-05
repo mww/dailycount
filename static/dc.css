@@ -115,15 +115,16 @@ form#admin_prefs textarea {
   width: 45%;
 }
 
-.counter_increment_with_comment {
+.counter_increment_advanced {
   width: 45%;
 }
+
 .counter_increment_container {
   margin: .3em .5em;
   text-align: center;
 }
 
-.counter_title {
+.sub_title {
   font-size: 32px;
   line-height: 32px;
   margin: 10px;
@@ -141,6 +142,10 @@ form#admin_prefs textarea {
   width: 100%;
 }
 
+.delete_button {
+  float: right;
+}
+
 #footer {
   text-align: center;
 }
@@ -154,8 +159,77 @@ form#admin_prefs textarea {
   padding: .5em;
 }
 
+.history_day {
+  padding-bottom: 1em;
+}
+
+.history_day_item {
+  line-height: 2.2em;
+  margin-left: 2em;
+}
+
+.history_day_title {
+  font-size: 20px;
+}
+
+#history_home_button {
+  margin-bottom: .75em;
+  text-align: center;
+  width: 100%;
+}
+
+.section_link {
+  margin: .5em;
+}
+
 #user_email {
   float: right;
+}
+
+#user_history_button {
+  margin-bottom: .25em;
+  width: 100%;
+}
+
+#user_profile_button {
+  width: 100%;
+}
+
+#user_profile_form #home,
+#user_profile_form .submit {
+  width: 100%;
+}
+
+.prefs_header {
+  font-size:24px;
+  line-height: 24px;
+  text-align: left;
+  padding-bottom: .5em;
+  padding-top: 1em;
+}
+
+#saved_locations_table {
+  border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+#saved_locations_table th {
+  font-size: small;
+  border: 1px solid;
+  padding: 1px;
+}
+
+#saved_locations_table td {
+  border: 1px solid;
+  padding: 2px;
+}
+
+.create_saved_location_button {
+  width: 100%;
 }
 
 #title {
@@ -189,11 +263,12 @@ body {
 	1     2      3
 	60px  144px  228px	*/
 @media only screen and (max-width: 479px) {
-
 	body {
-		/*padding: 48px 46px 0;*/
 		width: 228px;
 		-webkit-text-size-adjust: 100%;
 	}
 
+  .history_day_item {
+    margin-left: .5em;
+  }
 }

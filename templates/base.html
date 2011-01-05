@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1"/>
     <title>{{ escape(config_data.title) }}</title>
     <link rel='stylesheet' href='/static/ui-lightness/jquery-ui-1.8.7.custom.css'/>
     <link rel='stylesheet' href='/static/dc.css' type='text/css'/>
@@ -12,13 +13,15 @@
 	<body>
 		<div id='header' class='small'>
 			{% if not current_user %}
-			  <a href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
+			  <a class="section_link" href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
 			{% else %}
-			  <a href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
+			  <a class="section_link" href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
 			  {% if current_user.administrator %}
-			    :: <a href='/admin'>{{ _('Admin') }}</a>
+			    :: <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
 			  {% end %}
-        <a href='/user/profile'>{{ _('Profile') }}</a>
+        <a class="section_link" href='/user'>{{ _('Home') }}</a>
+        <a class="section_link" href='/user/profile'>{{ _('Profile') }}</a>
+        <a class="section_link" href='/user/history'>{{ _('History') }}</a>
 			  <div id='user_email'>{{ current_user.email() }}</div>
 			  <br style='clear:both;'/>
 			{% end %}

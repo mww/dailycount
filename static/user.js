@@ -1,42 +1,77 @@
-var lon, lat;
 var errorCount = 0;
 
 function findLocation() {
   if (geo_position_js.init()) {
-    geo_position_js.getCurrentPosition(success_callback, error_callback, {
+    geo_position_js.getCurrentPosition(showLocations, errorFindingLocation, {
       enableHighAccuracy : true,
-      timeout : 10000,
+      timeout : 3000,
       maximumAge : 60000
     });
   } else {
-    $('div.location').text('Your browser sucks...');
+    showLocations(null);
   }
 }
 
-function success_callback(p) {
-  lon = p.coords.longitude.toFixed(2);
-  lat = p.coords.latitude.toFixed(2);
-  $('div.location').text('Lon=' + lon + ', Lat=' + lat);
+function cacheLocation() {
+  if (geo_position_js.init()) {
+    geo_position_js.getCurrentPosition(function(p){}, function(p){}, {
+      enableHighAccuracy : true,
+      timeout : 60000,
+      maximumAge : 60000
+    });
+    setTimeout("cacheLocation()", 60000);
+  }
 }
 
-function error_callback(p) {
-  if(errorCount++ < 30)
+function showLocations(p) {
+  var lon = null;
+  var lat = null;
+  if(p != null) {
+    lon = p.coords.longitude.toFixed(2);
+    lat = p.coords.latitude.toFixed(2);
+  }
+  $.get('/user/location', 
+      {latitude : lat == null ? "" : lat, longitude : lon == null ? "" : lon}, 
+      function(data) {
+    locData = JSON.parse(data);
+    var select_location = $('#user_location_select');
+    select_location.empty();
+    select_location.append('<option>I won\'t tell!</option>');
+    locations = locData['locations'];
+    for (i in locations) {
+      var loc = locations[i];
+      if (loc == locData['user_location']) {
+        select_location.append('<option selected="yes">' + loc + '</option>');
+      } else {
+        select_location.append('<option>' + loc + '</option>');
+      }
+    }
+  });
+}
+
+function errorFindingLocation(p) {
+  if(errorCount++ < 2)
     findLocation();
-  else
-    $('div.location').text('Oh noes. Failed to find location!');
+  else {
+    showLocations(null);
+  }
 }
 
 $(document).ready(function() {
+  cacheLocation();
+  
   $('#increment_count_lightbox').dialog({
     autoOpen: false,
-    height: 350,
+    height: 360,
     width: 350,
     modal: true,
+    resizable: false,
     buttons: {
       Save: function() {
         var type = $(this).data('type');
         var comment = document.increment_form.comment.value;
-        incrementCounter(type, comment, lat, lon);
+        var loc = document.increment_form.location.value;
+        incrementCounter(type, comment, loc);
         $(this).dialog('close');
         resetDialog();
       },
@@ -47,11 +82,11 @@ $(document).ready(function() {
     }
   });
 
-  $('.counter_increment_with_comment').click(function() {
-    $('#increment_count_lightbox').data('type', $(this).attr('id')).dialog('open');
+  $('.counter_increment_advanced').click(function() {
     findLocation();
+    $('#increment_count_lightbox').data('type', $(this).attr('id')).dialog('open');
   });
-  
+
   $('.counter_increment').click(function() {
     incrementCounter($(this).attr('id'));
   });
@@ -59,13 +94,14 @@ $(document).ready(function() {
 
 function resetDialog() {
   $('#increment_count_lightbox #comment').val('');
-  $('div.location').text('Finding location...');
-  
+  var select_location = $('#user_location_select');
+  select_location.empty();
+  select_location.append('<option>Searching...</option>');
   errorCount=0;
 }
 
-function incrementCounter(type, comment, latitude, longitude) {
-  $.post('/user/countitem', {type: type, comment: comment, latitude: latitude, longitude: longitude}, function(data) {
+function incrementCounter(type, comment, loc) {
+  $.post('/user/countitem', {type: type, comment: comment, location: loc}, function(data) {
     var selector = '.counter_value#' + type;
     $(selector).text(data);
   });

@@ -1,10 +1,9 @@
-var lon, lat;
 var errorCount = 0;
 function findLocation() {
   if (geo_position_js.init()) {
     geo_position_js.getCurrentPosition(success_callback, error_callback, {
       enableHighAccuracy : true,
-      timeout : 10000,
+      timeout : 20000,
       maximumAge : 60000
     });
   } else {
@@ -13,19 +12,33 @@ function findLocation() {
 }
 
 function success_callback(p) {
-  lon = p.coords.longitude.toFixed(2);
-  lat = p.coords.latitude.toFixed(2);
+  var lon = p.coords.longitude.toFixed(6);
+  var lat = p.coords.latitude.toFixed(6);
   $('div.location').text('Current location: Lat=' + lat + ', Lon=' + lon);
 }
 
 function error_callback(p) {
-  if(errorCount++ < 6)
+  if(errorCount++ < 2)
     findLocation();
   else
     $('div.location').text('Current location: The Moon');
 }
 
 $(document).ready(function() {
+  $.get('/user/profile/timezones', function(data) {
+    options = JSON.parse(data);
+    var select_option = $('#user_timezone_select');
+    timezones = options['timezones']
+    for (i in timezones) {
+      var tz = timezones[i];
+      if (tz == options['user_timezone']) {
+        select_option.append('<option selected="yes">' + tz + '</option>');
+      } else {
+        select_option.append('<option>' + tz + '</option>');
+      }
+    }
+  });
+  
   $('#create_saved_location_lightbox').dialog({
     autoOpen: false,
     height: 375,
@@ -46,7 +59,7 @@ $(document).ready(function() {
       }
     }
   });
-
+  
   $('.create_saved_location_button').click(function() {
     $('#create_saved_location_lightbox').dialog('open');
     findLocation();
@@ -66,8 +79,8 @@ function createSavedLocation(name, latitude, longitude) {
   $.post('/user/location', {name: name, latitude: latitude, longitude: longitude}, function(data) {
     row = $('<tr></tr>');
     row.append('<td class="name">' + name + '</td>');
-    row.append('<td class="coords">(' + latitude + ', ' + longitude + ')</td>');
-    var last_row = $('#saved_locations_table tr').last().prev();
+    row.append('<td class="coords">' + latitude + ', ' + longitude + '</td>');
+    var last_row = $('#saved_locations_table tr').last();
     last_row.after(row);
   });
 }

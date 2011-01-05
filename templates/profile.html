@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  <div>Saved Locations</div>
+  <div class="sub_title">Profile</div>
+  <div class="prefs_header">Saved Locations</div>
   <div>
     <table id='saved_locations_table'>
     <tr>
@@ -14,13 +15,19 @@
         <td class='coords'>{{ locationTuple[1] }}</td>
       </tr>
     {% end %}
-    <tr>
-      <td>
-        <a href='#' class='jquery_button create_saved_location_button'>Create saved location</a>
-      </td>
-    </tr>
     </table>
+    <a href='#' class='jquery_button create_saved_location_button'>Create saved location</a>
   </div>
+  <form id='user_profile_form' action='/user/profile' method='post'>
+    <div class="prefs_header">Time Zone</div>
+    <div>
+      <select id='user_timezone_select' name='timezone'>
+      </select>
+    </div>
+
+    <br/>
+    <input type='submit' class='jquery_button submit' value='Save Time Zone'/>
+  </form>
   
   <div id='create_saved_location_lightbox' title='Create saved location'>
     <form name='create_saved_location_form'>

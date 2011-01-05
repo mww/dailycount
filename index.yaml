@@ -16,6 +16,17 @@ indexes:
   - name: user
   - name: date
 
+- kind: CountedItem
+  properties:
+  - name: user
+  - name: date
+
+- kind: CountedItem
+  properties:
+  - name: user
+  - name: date
+    direction: desc
+
 - kind: ItemType
   properties:
   - name: active

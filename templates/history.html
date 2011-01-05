@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class='sub_title'>History</div>
+  {% for key in dates %}
+    <div class='history_day'>
+      <div class='history_day_title'>{{ escape(key) }}</div>
+      {% for item in history[key] %}
+        <div class='history_day_item' id='{{ item["id"] }}'>
+          {{ escape(item['type_name']) }} &mdash; {{ escape(item['time']) }}
+          <a class='jquery_button small delete_button'>Details</a>
+        </div>
+
+        <div class='item_details_dialog' id='dialog_{{ item["id"] }}'
+             data-id='{{ item["id"] }}'>
+          <div>{{ escape(item['type_name']) }}</div>
+          <div>{{ escape(key) }} {{ escape(item['time']) }}</div>
+          {% if item['comment'] is not None %}
+            <div>Comment:</div>
+            <div>{{ escape(item['comment']) }}</div>
+          {% end %}
+          {% if item['location'] is not None %}
+            <div>Location:</div>
+            <div>{{ escape(item['location']) }}</div>
+          {% end %}
+        </div>
+      {% end %}
+    </div>
+  {% end %}
+{% end %}
+
+{% block bottom %}
+<script type='text/javascript' src='/static/history.js'></script>
+{% end %}
