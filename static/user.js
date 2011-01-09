@@ -14,7 +14,7 @@ function findLocation() {
 
 function cacheLocation() {
   if (geo_position_js.init()) {
-    geo_position_js.getCurrentPosition(function(p){}, function(p){}, {
+    geo_position_js.getCurrentPosition(function(p) {}, function(p) {}, {
       enableHighAccuracy : true,
       timeout : 60000,
       maximumAge : 60000
@@ -26,7 +26,7 @@ function cacheLocation() {
 function showLocations(p) {
   var lon = null;
   var lat = null;
-  if(p != null) {
+  if (p != null) {
     lon = p.coords.longitude.toFixed(2);
     lat = p.coords.latitude.toFixed(2);
   }
@@ -50,7 +50,7 @@ function showLocations(p) {
 }
 
 function errorFindingLocation(p) {
-  if(error_count++ < 2)
+  if (error_count++ < 2)
     findLocation();
   else {
     showLocations(null);
@@ -58,8 +58,6 @@ function errorFindingLocation(p) {
 }
 
 $(document).ready(function() {
-  cacheLocation();
-
   $('#increment_count_lightbox').dialog({
     autoOpen: false,
     height: 360,
@@ -69,8 +67,8 @@ $(document).ready(function() {
     buttons: {
       Save: function() {
         var type = $(this).data('type');
-        var comment = document.increment_form.comment.value;
-        var loc = document.increment_form.location.value;
+        var comment = $('#increment_form #comment').val();
+        var loc = $('#increment_form #user_location_select').val();
         incrementCounter(type, comment, loc);
         $(this).dialog('close');
         resetDialog();
