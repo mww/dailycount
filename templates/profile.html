@@ -9,10 +9,10 @@
       <th class='name'>Name</th>
       <th class='coords'>Coordinates</th>
     </tr>
-    {% for locationTuple in locations %}
+    {% for location in locations %}
       <tr>
-        <td class='name'>{{ locationTuple[0] }}</td>
-        <td class='coords'>{{ locationTuple[1] }}</td>
+        <td class='name'>{{ escape(location[0]) }}</td>
+        <td class='coords'>{{ location[1] }}</td>
       </tr>
     {% end %}
     </table>

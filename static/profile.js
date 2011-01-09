@@ -1,7 +1,7 @@
 var errorCount = 0;
 function findLocation() {
   if (geo_position_js.init()) {
-    geo_position_js.getCurrentPosition(success_callback, error_callback, {
+    geo_position_js.getCurrentPosition(successCallback, errorCallback, {
       enableHighAccuracy : true,
       timeout : 20000,
       maximumAge : 60000
@@ -11,13 +11,13 @@ function findLocation() {
   }
 }
 
-function success_callback(p) {
+function successCallback(p) {
   var lon = p.coords.longitude.toFixed(6);
   var lat = p.coords.latitude.toFixed(6);
   $('div.location').text('Current location: Lat=' + lat + ', Lon=' + lon);
 }
 
-function error_callback(p) {
+function errorCallback(p) {
   if(errorCount++ < 2) {
     findLocation();
   }
