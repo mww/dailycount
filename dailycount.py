@@ -275,37 +275,6 @@ class DeleteItemHandler(BaseHandler):
     self.write('OK');
 
 
-class MainHandler(BaseHandler):
-  def get(self):
-    if self.current_user:
-      self.redirect('/user')
-      return
-    else:
-      self.render('main.html')
-
-
-class UserHandler(BaseHandler):
-  @login_required
-  def get(self):
-    count_data = []
-    active_types = memcache.get('active_types')
-    if active_types is None:
-      q = db.Query(ItemType).order('created').filter('active =', True)
-      active_types = q.fetch(limit=5)
-      if not memcache.add('active_types', active_types, 30):
-        logging.error('Error adding active_types to memcache.')
-
-    user = self.get_current_user()
-    for item_type in active_types:
-      q = db.Query(CountedItem)
-      q.filter('user =', user)
-      q.filter('item_type =', item_type)
-      q.filter('date >=', get_start_of_day_time(user))
-      num = q.count()
-      count_data.append((item_type.name, num))
-    self.render('user.html', data=count_data)
-
-
 class LocationHandler(BaseHandler):
   @login_required
   def get(self):
@@ -346,6 +315,7 @@ class LocationHandler(BaseHandler):
   @login_required
   def post(self):
     name = self.get_argument('name', None)
+    # TODO(jktang): Make sure that name doesn't already exist.
     longitude = self.get_argument('longitude', None)
     latitude = self.get_argument('latitude', None)
     # TODO(jktang): Error checking on long and lat to make sure they are valid.
@@ -355,6 +325,15 @@ class LocationHandler(BaseHandler):
                         active=True)
     location.put()
     self.write('OK');
+
+
+class MainHandler(BaseHandler):
+  def get(self):
+    if self.current_user:
+      self.redirect('/user')
+      return
+    else:
+      self.render('main.html')
 
 
 class ProfileHandler(BaseHandler):
@@ -383,6 +362,28 @@ class ProfileHandler(BaseHandler):
       logging.error('Error deleting user options from memcache for user %s.' %
           user.email())
     self.redirect('/user/profile')
+
+
+class UserHandler(BaseHandler):
+  @login_required
+  def get(self):
+    count_data = []
+    active_types = memcache.get('active_types')
+    if active_types is None:
+      q = db.Query(ItemType).order('created').filter('active =', True)
+      active_types = q.fetch(limit=5)
+      if not memcache.add('active_types', active_types, 30):
+        logging.error('Error adding active_types to memcache.')
+
+    user = self.get_current_user()
+    for item_type in active_types:
+      q = db.Query(CountedItem)
+      q.filter('user =', user)
+      q.filter('item_type =', item_type)
+      q.filter('date >=', get_start_of_day_time(user))
+      num = q.count()
+      count_data.append((item_type.name, num))
+    self.render('user.html', data=count_data)
 
 
 class UserHistoryHandler(BaseHandler):

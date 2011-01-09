@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
 
 {% block body %}
+  {% for i in data %}
+    <div class='counter_container'>
+      <div class='sub_title'>Today's {{ escape(i[0]) }} Count</div>
+      <div class='counter_value' id='{{ escape(i[0]) }}'>{{ i[1] }}</div>
+      <div class='counter_increment_container' id='{{ escape(i[0]) }}'>
+        <a class='jquery_button counter_increment'
+           id='{{ escape(i[0]) }}'>+1</a>
+        <a class='jquery_button counter_increment_advanced'
+           id='{{ escape(i[0]) }}'>+1...</a>
+      </div>
+    </div>
+  {% end %}
   <div id='increment_count_lightbox' title='+1'>
     <form name='increment_form'>
       <div>Add a comment (optional)</div>
@@ -14,18 +26,6 @@
       <div>Want to set up a location?  Go <a href="/user/profile">here</a>.</div>
     </form>
   </div>
-  {% for i in data %}
-    <div class='counter_container'>
-      <div class='sub_title'>Today's {{ escape(i[0]) }} Count</div>
-      <div class='counter_value' id='{{ escape(i[0]) }}'>{{ i[1] }}</div>
-      <div class='counter_increment_container' id='{{ escape(i[0]) }}'>
-        <a class='jquery_button counter_increment'
-           id='{{ escape(i[0]) }}'>+1</a>
-        <a class='jquery_button counter_increment_advanced'
-           id='{{ escape(i[0]) }}'>+1...</a>
-      </div>
-    </div>
-  {% end %}
 {% end %}
 
 {% block bottom %}
