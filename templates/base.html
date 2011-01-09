@@ -16,12 +16,12 @@
 			  <a class="section_link" href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
 			{% else %}
 			  <a class="section_link" href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
-			  {% if current_user.administrator %}
-			    :: <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
-			  {% end %}
         <a class="section_link" href='/user'>{{ _('Home') }}</a>
-        <a class="section_link" href='/user/profile'>{{ _('Profile') }}</a>
         <a class="section_link" href='/user/history'>{{ _('History') }}</a>
+        <a class="section_link" href='/user/profile'>{{ _('Profile') }}</a>
+        {% if current_user.administrator %}
+			    <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
+			  {% end %}
 			  <div id='user_email'>{{ current_user.email() }}</div>
 			  <br style='clear:both;'/>
 			{% end %}

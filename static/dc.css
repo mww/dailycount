@@ -183,7 +183,7 @@ form#admin_prefs textarea {
 }
 
 #user_email {
-  float: right;
+  margin-left: .5em;
 }
 
 #user_history_button {

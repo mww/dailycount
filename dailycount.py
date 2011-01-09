@@ -37,8 +37,8 @@ class CountedItem(db.Model):
   comment = db.StringProperty(unicode, required=False, multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
   location = db.StringProperty(unicode, required=False, multiline=False)
-  
-  
+
+
 class Location(db.Model):
   name = db.StringProperty(unicode, required=True, multiline=False)
   user = db.UserProperty(required=True)
@@ -212,11 +212,11 @@ class CountItemHandler(BaseHandler):
     type_name = self.get_argument('type', None)
     comment = self.get_argument('comment', None)
     location = self.get_argument('location', None)
-    dbLoc = db.Query(Location).filter('name = ', location).get()
-    locName = None
-    if dbLoc:
-      locName = dbLoc.name
-    
+    db_loc = db.Query(Location).filter('name = ', location).get()
+    loc_name = None
+    if db_loc:
+      loc_name = db_loc.name
+
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
       # TODO(mww): Find a more specific 500 to serve
@@ -236,7 +236,7 @@ class CountItemHandler(BaseHandler):
     counted_item = CountedItem(item_type=item_type,
                                user=user,
                                comment=comment,
-                               location=locName)
+                               location=loc_name)
     counted_item.put()
 
     q = db.Query(CountedItem)
@@ -246,7 +246,7 @@ class CountItemHandler(BaseHandler):
     num = q.count()
     logging.info(
         'added new item of type: %s, comment: %s, loc: %s, new total: %d' %
-        (item_type.name, comment, locName, num))
+        (item_type.name, comment, loc_name, num))
     self.write('%d' % num)
 
 
@@ -309,8 +309,7 @@ class UserHandler(BaseHandler):
 class LocationHandler(BaseHandler):
   @login_required
   def get(self):
-    """Return all saved locations for this user and the one closest to
-       the passed in coordinates.
+    """Return all locations, and the closest location for the current user.
 
     The results are returned in a JSON format that looks like:
     {
@@ -334,21 +333,22 @@ class LocationHandler(BaseHandler):
       for loc in db_locs:
         locs.append(loc.name)
         if lat and lon:
-          compare = (abs(float(lat)-loc.geo_pt.lat) 
-                     + abs(float(lon)-loc.geo_pt.lon))
+          compare = (abs(float(lat)-loc.geo_pt.lat) +
+                     abs(float(lon)-loc.geo_pt.lon))
           if compare < best_compare:
             best_compare = compare
             nearest_loc = loc.name
-        
+
     locs_str = '[%s]' % ','.join('"%s"' %  x for x in locs)
     self.write('{"user_location": "%s", "locations": %s}' %
         (nearest_loc, locs_str))
-    
+
   @login_required
   def post(self):
     name = self.get_argument('name', None)
     longitude = self.get_argument('longitude', None)
     latitude = self.get_argument('latitude', None)
+    # TODO(jktang): Error checking on long and lat to make sure they are valid.
     location = Location(name=name,
                         user=self.get_current_user(),
                         geo_pt=(latitude + ',' + longitude),
@@ -370,7 +370,7 @@ class ProfileHandler(BaseHandler):
         locs.append((loc.name, loc.geo_pt))
     options = get_user_options(self.get_current_user())
     self.render('profile.html', locations=locs, options=options)
-    
+
   @login_required
   def post(self):
     user = self.get_current_user()
@@ -402,8 +402,11 @@ class UserHistoryHandler(BaseHandler):
       if not date_str in items:
         dates.append(date_str)
         items[date_str] = []
-      items[date_str].append({'time': time_str, 'id': item.key().id(),
-          'type_name': item.item_type.name, 'comment': item.comment, 'location': item.location})
+      items[date_str].append({'time': time_str,
+                              'id': item.key().id(),
+                              'type_name': item.item_type.name,
+                              'comment': item.comment,
+                              'location': item.location})
     self.render('history.html', dates=dates, history=items)
 
 
@@ -430,8 +433,8 @@ class UserTimeZonesHandler(BaseHandler):
     options = get_user_options(self.get_current_user())
     self.write('{"user_timezone": "%s", "timezones": %s}' %
         (options.timezone, timezones))
-    
-    
+
+
 if __name__ == "__main__":
   settings = {
     'template_path': os.path.join(os.path.dirname(__file__), 'templates'),
