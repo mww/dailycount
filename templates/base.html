@@ -10,32 +10,32 @@
     <script type='text/javascript' src='/static/jquery-ui-1.8.7.custom.min.js'></script>
     {% block head %}{% end %}
   </head>
-	<body>
-		<div id='header' class='small'>
-			{% if not current_user %}
-			  <a class="section_link" href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
-			{% else %}
-			  <a class="section_link" href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
+  <body>
+    <div id='header' class='small'>
+      {% if not current_user %}
+        <a class="section_link" href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
+      {% else %}
+        <a class="section_link" href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
         <a class="section_link" href='/user'>{{ _('Home') }}</a>
         <a class="section_link" href='/user/history'>{{ _('History') }}</a>
         <a class="section_link" href='/user/profile'>{{ _('Profile') }}</a>
         {% if current_user.administrator %}
-			    <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
-			  {% end %}
-			  <div id='user_email'>{{ current_user.email() }}</div>
-			  <br style='clear:both;'/>
-			{% end %}
-		</div>
+          <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
+        {% end %}
+        <div id='user_email'>{{ current_user.email() }}</div>
+        <br style='clear:both;'/>
+      {% end %}
+    </div>
 
-		<div class='large' id='title'>{{ escape(config_data.title) }}</div>
+    <div class='large' id='title'>{{ escape(config_data.title) }}</div>
 
-		<div id='content'>{% block body %}{% end %}</div>
+    <div id='content'>{% block body %}{% end %}</div>
 
     <hr/>
     <div id='footer' class='small'>
-			&copy;2010 &mdash; All Rights Reserved
-		</div>
-		<script type='text/javascript'>
+      &copy;2010 &mdash; All Rights Reserved
+    </div>
+    <script type='text/javascript'>
       $(document).ready(function() {
         $('.jquery_button').button();
       });
@@ -59,5 +59,5 @@
         </script>
       {% end %}
     {% end %}
-	</body>
+  </body>
 </html>

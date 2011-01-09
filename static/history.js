@@ -8,18 +8,18 @@ $(document).ready(function() {
     resizable: false,
     modal: true,
     buttons: {
-    	Close: function() {
-    		$(this).dialog( "close" );
-    	},
-    	"Delete": function() {
-    	  var id = $(this).data('id');
-    	  $.post('/user/item/' + id + '/delete', function(data) {
-    	    $('.history_day_item#' + id).fadeOut('slow', function() {
-    	      $(this).detach();
-    	    });
-    	  });
-    		$(this).dialog( "close" );
-    	}
+      Close: function() {
+        $(this).dialog( "close" );
+      },
+      "Delete": function() {
+        var id = $(this).data('id');
+        $.post('/user/item/' + id + '/delete', function(data) {
+          $('.history_day_item#' + id).fadeOut('slow', function() {
+            $(this).detach();
+          });
+        });
+        $(this).dialog( "close" );
+      }
     }
   });
 

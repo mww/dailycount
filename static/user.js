@@ -30,8 +30,8 @@ function showLocations(p) {
     lon = p.coords.longitude.toFixed(2);
     lat = p.coords.latitude.toFixed(2);
   }
-  $.get('/user/location', 
-      {latitude : lat == null ? "" : lat, longitude : lon == null ? "" : lon}, 
+  $.get('/user/location',
+      {latitude : lat == null ? "" : lat, longitude : lon == null ? "" : lon},
       function(data) {
     loc_data = JSON.parse(data);
     var select_location = $('#user_location_select');
@@ -59,7 +59,7 @@ function errorFindingLocation(p) {
 
 $(document).ready(function() {
   cacheLocation();
-  
+
   $('#increment_count_lightbox').dialog({
     autoOpen: false,
     height: 360,

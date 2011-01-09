@@ -40,7 +40,7 @@ $(document).ready(function() {
       }
     }
   });
-  
+
   $('#create_saved_location_lightbox').dialog({
     autoOpen: false,
     height: 375,
@@ -61,12 +61,12 @@ $(document).ready(function() {
       }
     }
   });
-  
+
   $('.create_saved_location_button').click(function() {
     $('#create_saved_location_lightbox').dialog('open');
     findLocation();
   });
-  
+
 });
 
 function resetDialog() {
