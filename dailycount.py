@@ -38,11 +38,13 @@ class CountedItem(db.Model):
   date = db.DateTimeProperty(auto_now_add=True)
   location = db.StringProperty(unicode, required=False, multiline=False)
   
+  
 class Location(db.Model):
   name = db.StringProperty(unicode, required=True, multiline=False)
   user = db.UserProperty(required=True)
-  geoPt = db.GeoPtProperty(required=True)
+  geo_pt = db.GeoPtProperty(required=True)
   active = db.BooleanProperty(required=True)
+
 
 class UserOptions(db.Model):
   user = db.UserProperty(required=True)
@@ -214,7 +216,6 @@ class CountItemHandler(BaseHandler):
     locName = None
     if dbLoc:
       locName = dbLoc.name
-    user = self.get_current_user()
     
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
@@ -231,8 +232,9 @@ class CountItemHandler(BaseHandler):
       raise tornado.web.HTTPError(500)
       return
 
+    user = self.get_current_user()
     counted_item = CountedItem(item_type=item_type,
-                               user=self.get_current_user(),
+                               user=user,
                                comment=comment,
                                location=locName)
     counted_item.put()
@@ -242,7 +244,8 @@ class CountItemHandler(BaseHandler):
     q.filter('item_type =', item_type)
     q.filter('date >', get_start_of_day_time(user))
     num = q.count()
-    logging.info('added new item of type: %s, comment: %s, loc: %s, new total: %d' %
+    logging.info(
+        'added new item of type: %s, comment: %s, loc: %s, new total: %d' %
         (item_type.name, comment, locName, num))
     self.write('%d' % num)
 
@@ -306,27 +309,40 @@ class UserHandler(BaseHandler):
 class LocationHandler(BaseHandler):
   @login_required
   def get(self):
+    """Return all saved locations for this user and the one closest to
+       the passed in coordinates.
+
+    The results are returned in a JSON format that looks like:
+    {
+      "user_location": "Work Bathroom",
+      "locations": ["Home Bathroom", "Work Bathroom", ...]
+    }
+
+    Returns: JSON formatted list of save locations, ant the name of
+             the location closest to the passed in coordinates.
+    """
     lat = self.get_argument('latitude', None)
     lon = self.get_argument('longitude', None)
     q = db.Query(Location)
     q.filter('user =', self.get_current_user())
     q.filter('active =', True)
-    dbLocs = q.fetch(100)
+    db_locs = q.fetch(100)
     locs = [];
-    nearestLoc = None;
-    bestCompare = 10000000;
-    if dbLocs:
-      for loc in dbLocs:
+    nearest_loc = None;
+    best_compare = 10000000;
+    if db_locs:
+      for loc in db_locs:
         locs.append(loc.name)
         if lat and lon:
-          compare = (abs(float(lat)-loc.geoPt.lat) + abs(float(lon)-loc.geoPt.lon))
-          if compare < bestCompare:
-            bestCompare = compare
-            nearestLoc = loc.name
+          compare = (abs(float(lat)-loc.geo_pt.lat) 
+                     + abs(float(lon)-loc.geo_pt.lon))
+          if compare < best_compare:
+            best_compare = compare
+            nearest_loc = loc.name
         
-    locsStr = '[%s]' % ','.join('"%s"' %  x for x in locs)
+    locs_str = '[%s]' % ','.join('"%s"' %  x for x in locs)
     self.write('{"user_location": "%s", "locations": %s}' %
-        (nearestLoc, locsStr))
+        (nearest_loc, locs_str))
     
   @login_required
   def post(self):
@@ -335,9 +351,10 @@ class LocationHandler(BaseHandler):
     latitude = self.get_argument('latitude', None)
     location = Location(name=name,
                         user=self.get_current_user(),
-                        geoPt=(latitude + ',' + longitude),
+                        geo_pt=(latitude + ',' + longitude),
                         active=True)
     location.put()
+    self.write('OK');
 
 
 class ProfileHandler(BaseHandler):
@@ -346,13 +363,13 @@ class ProfileHandler(BaseHandler):
     q = db.Query(Location)
     q.filter('user =', self.get_current_user())
     q.filter('active =', True)
-    dbLocs = q.fetch(100)
+    db_locs = q.fetch(100)
     locs = [];
-    if dbLocs:
-      for loc in dbLocs:
-        locs.append((loc.name, loc.geoPt))
+    if db_locs:
+      for loc in db_locs:
+        locs.append((loc.name, loc.geo_pt))
     options = get_user_options(self.get_current_user())
-    self.render('profile.html', data={'locations' : locs, 'options' : options})
+    self.render('profile.html', locations=locs, options=options)
     
   @login_required
   def post(self):
@@ -426,10 +443,10 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
+    (r'/user/history/?', UserHistoryHandler),
+    (r'/user/item/(\d+)/delete', DeleteItemHandler),
     (r'/user/location', LocationHandler),
     (r'/user/profile', ProfileHandler),
-    (r'/user/item/(\d+)/delete', DeleteItemHandler),
-    (r'/user/history/?', UserHistoryHandler),
     (r'/user/profile/timezones/?', UserTimeZonesHandler),
   ], **settings)
 

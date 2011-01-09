@@ -1,4 +1,4 @@
-var errorCount = 0;
+var error_count = 0;
 
 function findLocation() {
   if (geo_position_js.init()) {
@@ -33,14 +33,14 @@ function showLocations(p) {
   $.get('/user/location', 
       {latitude : lat == null ? "" : lat, longitude : lon == null ? "" : lon}, 
       function(data) {
-    locData = JSON.parse(data);
+    loc_data = JSON.parse(data);
     var select_location = $('#user_location_select');
     select_location.empty();
     select_location.append('<option>I won\'t tell!</option>');
-    locations = locData['locations'];
+    locations = loc_data['locations'];
     for (i in locations) {
       var loc = locations[i];
-      if (loc == locData['user_location']) {
+      if (loc == loc_data['user_location']) {
         select_location.append('<option selected="yes">' + loc + '</option>');
       } else {
         select_location.append('<option>' + loc + '</option>');
@@ -50,7 +50,7 @@ function showLocations(p) {
 }
 
 function errorFindingLocation(p) {
-  if(errorCount++ < 2)
+  if(error_count++ < 2)
     findLocation();
   else {
     showLocations(null);
@@ -97,7 +97,7 @@ function resetDialog() {
   var select_location = $('#user_location_select');
   select_location.empty();
   select_location.append('<option>Searching...</option>');
-  errorCount=0;
+  error_count=0;
 }
 
 function incrementCounter(type, comment, loc) {

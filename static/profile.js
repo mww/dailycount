@@ -18,10 +18,12 @@ function success_callback(p) {
 }
 
 function error_callback(p) {
-  if(errorCount++ < 2)
+  if(errorCount++ < 2) {
     findLocation();
-  else
+  }
+  else {
     $('div.location').text('Current location: The Moon');
+  }
 }
 
 $(document).ready(function() {

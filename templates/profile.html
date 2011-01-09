@@ -9,7 +9,7 @@
       <th class='name'>Name</th>
       <th class='coords'>Coordinates</th>
     </tr>
-    {% for locationTuple in data['locations'] %}
+    {% for locationTuple in locations %}
       <tr>
         <td class='name'>{{ locationTuple[0] }}</td>
         <td class='coords'>{{ locationTuple[1] }}</td>
