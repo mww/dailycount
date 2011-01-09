@@ -69,10 +69,6 @@ form#admin_prefs textarea {
   width: 100%;
 }
 
-#content {
-  padding: 7px;
-}
-
 #counted_types_table {
   border-width: 1px;
   border-style: solid;
@@ -178,12 +174,39 @@ form#admin_prefs textarea {
   width: 100%;
 }
 
+.nav_button {
+  float: left;
+  margin: 0;
+  width: 33%;
+}
+
+.nav_button a {
+  width: 97%;
+}
+
+#nav_button_middle {
+  width: 34%;
+}
+
+.nav_button_wide {
+  margin-bottom: .25em;
+  width: 99%;
+}
+
+#nav_button_signin {
+  width: 100%;
+}
+
+#nav_buttons {
+  width: 100%;
+}
+
 .section_link {
   margin: .5em;
 }
 
 #user_email {
-  margin-left: .5em;
+  text-align: center;
 }
 
 #user_history_button {
@@ -234,7 +257,6 @@ form#admin_prefs textarea {
 
 #title {
   text-align: center;
-  padding: 7px;
 }
 
 
@@ -270,5 +292,14 @@ body {
 
   .history_day_item {
     margin-left: .5em;
+  }
+
+  .nav_button {
+    float: none;
+    width: 100%;
+  }
+
+  #nav_button_middle {
+    width: 100%;
   }
 }

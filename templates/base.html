@@ -12,24 +12,40 @@
   </head>
   <body>
     <div id='header' class='small'>
-      {% if not current_user %}
-        <a class="section_link" href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
-      {% else %}
-        <a class="section_link" href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
-        <a class="section_link" href='/user'>{{ _('Home') }}</a>
-        <a class="section_link" href='/user/history'>{{ _('History') }}</a>
-        <a class="section_link" href='/user/profile'>{{ _('Profile') }}</a>
-        {% if current_user.administrator %}
-          <a class="section_link" href='/admin'>{{ _('Admin') }}</a>
-        {% end %}
+      {% if current_user %}
         <div id='user_email'>{{ current_user.email() }}</div>
-        <br style='clear:both;'/>
       {% end %}
     </div>
 
     <div class='large' id='title'>{{ escape(config_data.title) }}</div>
 
     <div id='content'>{% block body %}{% end %}</div>
+
+    <div id='nav_buttons'>
+      {% if not current_user %}
+        <a class='jquery_button' id='nav_button_signin'
+           href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
+      {% else %}
+        <div>
+          <a class='jquery_button nav_button_wide' href='/user'>{{ _('Home') }}</a>
+        </div>
+        {% if current_user.administrator %}
+          <div>
+            <a class='jquery_button nav_button_wide' href='/admin'>{{ _('Admin') }}</a>
+          </div>
+        {% end %}
+        <div class='nav_button'>
+          <a class='jquery_button' href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
+        </div>
+        <div class='nav_button' id='nav_button_middle'>
+          <a class='jquery_button' href='/user/history'>{{ _('History') }}</a>
+        </div>
+        <div class='nav_button'>
+          <a class='jquery_button' href='/user/profile'>{{ _('Profile') }}</a>
+        </div>
+        <br style='clear:both;'/>
+      {% end %}
+    </div>
 
     <hr/>
     <div id='footer' class='small'>
