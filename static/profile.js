@@ -78,11 +78,20 @@ function resetDialog() {
 }
 
 function createSavedLocation(name, latitude, longitude) {
-  $.post('/user/location', {name: name, latitude: latitude, longitude: longitude}, function(data) {
-    row = $('<tr></tr>');
-    row.append('<td class="name">' + name + '</td>');
-    row.append('<td class="coords">' + latitude + ', ' + longitude + '</td>');
-    var last_row = $('#saved_locations_table tr').last();
-    last_row.after(row);
+  $.post('/user/location',
+      {name: name, latitude: latitude, longitude: longitude}, function(data) {
+    if (data.indexOf('OK') === 0) {
+      row = $('<tr></tr>');
+      row.append('<td class="name">' + name + '</td>');
+      row.append('<td class="coords">' + latitude + ', ' + longitude + '</td>');
+      var last_row = $('#saved_locations_table tr').last();
+      last_row.after(row);
+    } else if (data.indexOf('FAIL') === 0) {
+      var message = data.substr(5);
+      // 5 is index of FAIL\n, so we only have the message
+      alert(message);
+    } else {
+      alert('Unknown result: ' + data);
+    }
   });
 }

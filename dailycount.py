@@ -315,12 +315,33 @@ class LocationHandler(BaseHandler):
   @login_required
   def post(self):
     name = self.get_argument('name', None)
-    # TODO(jktang): Make sure that name doesn't already exist.
     longitude = self.get_argument('longitude', None)
     latitude = self.get_argument('latitude', None)
-    # TODO(jktang): Error checking on long and lat to make sure they are valid.
+
+    user = self.get_current_user()
+    try:
+      # Basic error checking. Longitudes are between -180 and 180,
+      # Latitudes are between -90 and 90
+      lon = float(longitude)
+      lat = float(latitude)
+      if not -180.0 < lon < 180.0:
+        raise ValueError('longitude is out of range')
+
+      if not -90.0 < lat < 90.0:
+        raise ValueError('latitude is out of range')
+
+      # Check if there is already a location with the same name
+      q = db.Query(Location).filter('name =', name).filter('user =', user)
+      current = q.get()
+      if current is not None:
+        raise ValueError('name "%s" is already used' % name)
+    except ValueError, e:
+      self.write('FAIL\n')
+      self.write(str(e))
+      return
+
     location = Location(name=name,
-                        user=self.get_current_user(),
+                        user=user,
                         geo_pt=(latitude + ',' + longitude),
                         active=True)
     location.put()
