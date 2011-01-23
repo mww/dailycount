@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  <a href='/' class='jquery_button' id='history_home_button'>Home</a>
-  <div class='history_title'>History</div>
+  <div class='sub_title'>History</div>
   {% for key in dates %}
     <div class='history_day'>
       <div class='history_day_title'>{{ escape(key) }}</div>
@@ -19,6 +18,10 @@
           {% if item['comment'] is not None %}
             <div>Comment:</div>
             <div>{{ escape(item['comment']) }}</div>
+          {% end %}
+          {% if item['location'] is not None %}
+            <div>Location:</div>
+            <div>{{ escape(item['location']) }}</div>
           {% end %}
         </div>
       {% end %}

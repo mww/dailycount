@@ -36,6 +36,14 @@ class CountedItem(db.Model):
   user = db.UserProperty(required=True)
   comment = db.StringProperty(unicode, required=False, multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
+  location = db.StringProperty(unicode, required=False, multiline=False)
+
+
+class Location(db.Model):
+  name = db.StringProperty(unicode, required=True, multiline=False)
+  user = db.UserProperty(required=True)
+  geo_pt = db.GeoPtProperty(required=True)
+  active = db.BooleanProperty(required=True)
 
 
 class UserOptions(db.Model):
@@ -203,6 +211,11 @@ class CountItemHandler(BaseHandler):
   def post(self):
     type_name = self.get_argument('type', None)
     comment = self.get_argument('comment', None)
+    location = self.get_argument('location', None)
+    db_loc = db.Query(Location).filter('name = ', location).get()
+    loc_name = None
+    if db_loc:
+      loc_name = db_loc.name
 
     if type_name is None:
       logging.error('type pass to CountItemHandler is None')
@@ -220,7 +233,10 @@ class CountItemHandler(BaseHandler):
       return
 
     user = self.get_current_user()
-    counted_item = CountedItem(item_type=item_type, user=user, comment=comment)
+    counted_item = CountedItem(item_type=item_type,
+                               user=user,
+                               comment=comment,
+                               location=loc_name)
     counted_item.put()
 
     q = db.Query(CountedItem)
@@ -228,8 +244,9 @@ class CountItemHandler(BaseHandler):
     q.filter('item_type =', item_type)
     q.filter('date >', get_start_of_day_time(user))
     num = q.count()
-    logging.info('added new item of type: %s, comment: %s, new total: %d' %
-        (item_type.name, comment, num))
+    logging.info(
+        'added new item of type: %s, comment: %s, loc: %s, new total: %d' %
+        (item_type.name, comment, loc_name, num))
     self.write('%d' % num)
 
 
@@ -258,6 +275,79 @@ class DeleteItemHandler(BaseHandler):
     self.write('OK');
 
 
+class LocationHandler(BaseHandler):
+  @login_required
+  def get(self):
+    """Return all locations, and the closest location for the current user.
+
+    The results are returned in a JSON format that looks like:
+    {
+      "user_location": "Work Bathroom",
+      "locations": ["Home Bathroom", "Work Bathroom", ...]
+    }
+
+    Returns: JSON formatted list of save locations, ant the name of
+             the location closest to the passed in coordinates.
+    """
+    lat = self.get_argument('latitude', None)
+    lon = self.get_argument('longitude', None)
+    q = db.Query(Location)
+    q.filter('user =', self.get_current_user())
+    q.filter('active =', True)
+    db_locs = q.fetch(100)
+    locs = [];
+    nearest_loc = None;
+    best_compare = 10000000;
+    if db_locs:
+      for loc in db_locs:
+        locs.append(loc.name)
+        if lat and lon:
+          compare = (abs(float(lat)-loc.geo_pt.lat) +
+                     abs(float(lon)-loc.geo_pt.lon))
+          if compare < best_compare:
+            best_compare = compare
+            nearest_loc = loc.name
+
+    locs_str = '[%s]' % ','.join('"%s"' %  x for x in locs)
+    self.write('{"user_location": "%s", "locations": %s}' %
+        (nearest_loc, locs_str))
+
+  @login_required
+  def post(self):
+    name = self.get_argument('name', None)
+    longitude = self.get_argument('longitude', None)
+    latitude = self.get_argument('latitude', None)
+
+    user = self.get_current_user()
+    try:
+      # Basic error checking. Longitudes are between -180 and 180,
+      # Latitudes are between -90 and 90
+      lon = float(longitude)
+      lat = float(latitude)
+      if not -180.0 < lon < 180.0:
+        raise ValueError('longitude is out of range')
+
+      if not -90.0 < lat < 90.0:
+        raise ValueError('latitude is out of range')
+
+      # Check if there is already a location with the same name
+      q = db.Query(Location).filter('name =', name).filter('user =', user)
+      current = q.get()
+      if current is not None:
+        raise ValueError('name "%s" is already used' % name)
+    except ValueError, e:
+      self.write('FAIL\n')
+      self.write(str(e))
+      return
+
+    location = Location(name=name,
+                        user=user,
+                        geo_pt=(latitude + ',' + longitude),
+                        active=True)
+    location.put()
+    self.write('OK');
+
+
 class MainHandler(BaseHandler):
   def get(self):
     if self.current_user:
@@ -265,6 +355,34 @@ class MainHandler(BaseHandler):
       return
     else:
       self.render('main.html')
+
+
+class ProfileHandler(BaseHandler):
+  @login_required
+  def get(self):
+    q = db.Query(Location)
+    q.filter('user =', self.get_current_user())
+    q.filter('active =', True)
+    db_locs = q.fetch(100)
+    locs = [];
+    if db_locs:
+      for loc in db_locs:
+        locs.append((loc.name, loc.geo_pt))
+    options = get_user_options(self.get_current_user())
+    self.render('profile.html', locations=locs, options=options)
+
+  @login_required
+  def post(self):
+    user = self.get_current_user()
+    timezone = self.get_argument('timezone', 'US/Pacific')
+    logging.info('timezone for user %s set to %s' % (user.nickname(), timezone))
+    options = get_user_options(user)
+    options.timezone = timezone
+    options.put()
+    if not memcache.delete('%s-options' % user.email()):
+      logging.error('Error deleting user options from memcache for user %s.' %
+          user.email())
+    self.redirect('/user/profile')
 
 
 class UserHandler(BaseHandler):
@@ -306,29 +424,12 @@ class UserHistoryHandler(BaseHandler):
       if not date_str in items:
         dates.append(date_str)
         items[date_str] = []
-      items[date_str].append({'time': time_str, 'id': item.key().id(),
-          'type_name': item.item_type.name, 'comment': item.comment})
+      items[date_str].append({'time': time_str,
+                              'id': item.key().id(),
+                              'type_name': item.item_type.name,
+                              'comment': item.comment,
+                              'location': item.location})
     self.render('history.html', dates=dates, history=items)
-
-
-class UserOptionsHandler(BaseHandler):
-  @login_required
-  def get(self):
-    options = get_user_options(self.get_current_user())
-    self.render('options.html')
-
-  @login_required
-  def post(self):
-    user = self.get_current_user()
-    timezone = self.get_argument('timezone', 'US/Pacific')
-    logging.info('timezone for user %s set to %s' % (user.nickname(), timezone))
-    options = get_user_options(user)
-    options.timezone = timezone
-    options.put()
-    if not memcache.delete('%s-options' % user.email()):
-      logging.error('Error deleting user options from memcache for user %s.' %
-          user.email())
-    self.redirect('/user/options')
 
 
 class UserTimeZonesHandler(BaseHandler):
@@ -367,10 +468,11 @@ if __name__ == "__main__":
     (r'/admin/createitemtype', CreateItemTypeHandler),
     (r'/user', UserHandler),
     (r'/user/countitem', CountItemHandler),
-    (r'/user/item/(\d+)/delete', DeleteItemHandler),
     (r'/user/history/?', UserHistoryHandler),
-    (r'/user/options/?', UserOptionsHandler),
-    (r'/user/options/timezones/?', UserTimeZonesHandler),
+    (r'/user/item/(\d+)/delete', DeleteItemHandler),
+    (r'/user/location', LocationHandler),
+    (r'/user/profile', ProfileHandler),
+    (r'/user/profile/timezones/?', UserTimeZonesHandler),
   ], **settings)
 
   wsgiref.handlers.CGIHandler().run(application)
