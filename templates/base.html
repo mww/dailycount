@@ -23,31 +23,31 @@
 
     <div id='nav_buttons'>
       {% if not current_user %}
-        <a class='jquery_button' id='nav_button_signin'
+        <a class='jquery_button nav_button_wide'
            href='{{ escape(handler.get_login_url()) }}'>{{ _('Sign in') }}</a>
       {% else %}
-        <div>
-          <a class='jquery_button nav_button_wide' href='/user'>{{ _('Home') }}</a>
+        <div class='nav_button nav_button_3col_top small'>
+          <a class='jquery_button' href='/user'>{{ _('Home') }}</a>
+        </div>
+        <div class='nav_button small'>
+          <a class='jquery_button' href='/user/history'>{{ _('History') }}</a>
+        </div>
+        <div class='nav_button small'>
+          <a class='jquery_button' href='/user/profile'>{{ _('Profile') }}</a>
+        </div>
+        <div class='nav_button nav_button_last small'>
+          <a class='jquery_button' href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
         </div>
         {% if current_user.administrator %}
           <div>
             <a class='jquery_button nav_button_wide' href='/admin'>{{ _('Admin') }}</a>
           </div>
         {% end %}
-        <div class='nav_button'>
-          <a class='jquery_button' href='{{ escape(handler.get_logout_url()) }}'>{{ _('Sign out') }}</a>
-        </div>
-        <div class='nav_button' id='nav_button_middle'>
-          <a class='jquery_button' href='/user/history'>{{ _('History') }}</a>
-        </div>
-        <div class='nav_button'>
-          <a class='jquery_button' href='/user/profile'>{{ _('Profile') }}</a>
-        </div>
-        <br style='clear:both;'/>
+        <div style='clear:both;'></div>
       {% end %}
     </div>
 
-    <hr/>
+    <hr id='footer_hr'/>
     <div id='footer' class='small'>
       &copy;2010 &mdash; All Rights Reserved
     </div>

@@ -146,9 +146,9 @@ form#admin_prefs textarea {
   text-align: center;
 }
 
-#get_started {
-  margin: 1em;
-  text-align: center;
+#footer_hr {
+  clear: both;
+  margin-top: 10px;
 }
 
 #header {
@@ -176,25 +176,30 @@ form#admin_prefs textarea {
 
 .nav_button {
   float: left;
-  margin: 0;
-  width: 33%;
+  height: 40px;
+  margin-right: 24px;
+  width: 81px;
 }
 
-.nav_button a {
-  width: 97%;
+.nav_button_last {
+  margin-right: 0;
 }
 
-#nav_button_middle {
-  width: 34%;
+.nav_button .jquery_button {
+  height: 100%;
+  margin: 0px;
+  width: 100%;
+}
+
+.nav_button .jquery_button .ui-button-text {
+  padding-top: 12px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .nav_button_wide {
-  margin-bottom: .25em;
+  margin-top: 10px;
   width: 99%;
-}
-
-#nav_button_signin {
-  width: 100%;
 }
 
 #nav_buttons {
@@ -295,11 +300,18 @@ body {
   }
 
   .nav_button {
+    float: left;
+    margin-right: 24px;
+    margin-top: 5px;
+    width: 60px;
+  }
+
+  .nav_button_3col_top {
     float: none;
     width: 100%;
   }
 
-  #nav_button_middle {
-    width: 100%;
+  .nav_button_last {
+    margin-right: 0;
   }
 }

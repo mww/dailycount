@@ -3,12 +3,5 @@
 {% block body %}
   <div>
     {{ escape(config_data.description) }}
-
-    <div id='get_started'>
-      <a id='test' class='jquery_button'
-         href='{{ escape(handler.get_login_url()) }}'>
-        Get&nbsp;Started
-      </a>
-    </div>
   </div>
 {% end %}
