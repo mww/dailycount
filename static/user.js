@@ -60,8 +60,6 @@ function errorFindingLocation(p) {
 $(document).ready(function() {
   $('#increment_count_lightbox').dialog({
     autoOpen: false,
-    height: 360,
-    width: 350,
     modal: true,
     resizable: false,
     buttons: {
