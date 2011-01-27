@@ -7,22 +7,54 @@
       <div class='history_day_title'>{{ escape(key) }}</div>
       {% for item in history[key] %}
         <div class='history_day_item' id='{{ item["id"] }}'>
-          {{ escape(item['type_name']) }} &mdash; {{ escape(item['time']) }}
-          <a class='jquery_button small delete_button'>Details</a>
-        </div>
-
-        <div class='item_details_dialog' id='dialog_{{ item["id"] }}'
-             data-id='{{ item["id"] }}'>
-          <div>{{ escape(item['type_name']) }}</div>
-          <div>{{ escape(key) }} {{ escape(item['time']) }}</div>
+          <div class='history_basics'>
+            {{ escape(item['type_name']) }} &mdash; {{ escape(item['time']) }}
+          </div>
           {% if item['comment'] is not None %}
-            <div>Comment:</div>
-            <div>{{ escape(item['comment']) }}</div>
+            <div class='history_detail'>
+              <a class='jquery_button item_comment_button'
+                 data-id='{{ item["id"] }}'>
+                <span class='ui-icon ui-icon-comment'></span>
+              </a>
+            </div>
+          {% else %}
+            <div class='history_spanner'>&nbsp;</div>
           {% end %}
           {% if item['location'] is not None %}
-            <div>Location:</div>
-            <div>{{ escape(item['location']) }}</div>
+            <div class='history_detail'>
+              <a class='jquery_button item_location_button'
+                 data-id='{{ item["id"] }}'>
+                <span class='ui-icon ui-icon-flag'></span>
+              </a>
+            </div>
+          {% else %}
+            <div class='history_spanner'>&nbsp;</div>
           {% end %}
+          <div class='history_detail'>
+            <a class='jquery_button item_delete_button'
+               data-id='{{ item["id"] }}'>
+              <span class='ui-icon ui-icon-trash'></span>
+            </a>
+          </div>
+          <div style='clear:both;'></div>
+        </div>
+
+        <div class='item_details_container hidden ui-corner-all'
+             id='item_{{ item["id"] }}'>
+          <div class='item_comment_details' id='item_{{ item["id"] }}'>
+            {% if item['comment'] is not None %}
+              Comment: {{ escape(item["comment"]) }}
+            {% end %}
+          </div>
+
+          <div class='item_location_details' id='item_{{ item["id"] }}'>
+            Location: {{ item["location"] }}
+          </div>
+        </div>
+
+        <div class='item_delete_confirm_dialog' id='item_{{ item["id"] }}'
+              data-id='{{ item["id"] }}'>
+          Are you sure?
         </div>
       {% end %}
     </div>
