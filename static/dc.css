@@ -155,12 +155,17 @@ form#admin_prefs textarea {
   padding: .5em;
 }
 
+.history_basics {
+  float: left;
+  margin-right: 30px;
+}
+
 .history_day {
   padding-bottom: 1em;
 }
 
 .history_day_item {
-  line-height: 2.2em;
+  line-height: 2.0em;
   margin-left: 2em;
 }
 
@@ -168,10 +173,30 @@ form#admin_prefs textarea {
   font-size: 20px;
 }
 
-#history_home_button {
-  margin-bottom: .75em;
-  text-align: center;
-  width: 100%;
+.history_detail {
+  float: left;
+  height: 32px;
+  margin-right: 8px;
+  width: 55px;
+}
+
+.history_spanner {
+  float: left;
+  margin-right: 8px;
+  width: 55px;
+}
+
+.item_details_container {
+  margin: 4px 0 7px 2em;
+  padding: 4px;
+}
+
+.item_details_container.hidden {
+}
+
+.item_details_container.visible {
+  background-color: #fdf5ce;
+  border: #fed22f 1px solid;
 }
 
 .nav_button {
@@ -295,8 +320,17 @@ body {
     -webkit-text-size-adjust: 100%;
   }
 
+  .history_basics {
+    float: none;
+  }
+
   .history_day_item {
     margin-left: .5em;
+  }
+
+  .item_details_container {
+    margin: 4px 0 7px .5em;
+    padding: 4px;
   }
 
   .nav_button {
