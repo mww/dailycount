@@ -18,7 +18,8 @@ function successCallback(p) {
   location.text('Current location: Lat=' + lat + ', Lon=' + lon);
   location.data('lat', lat);
   location.data('lon', lon);
-  $('#use_current_location_button').removeAttr('disabled');
+  var button = $('#use_current_location_button');
+  button.removeAttr('disabled').removeClass('ui-state-disabled');
 }
 
 function errorCallback(p) {
@@ -31,7 +32,8 @@ function errorCallback(p) {
 }
 
 $(document).ready(function() {
-  $('#use_current_location_button').attr('disabled', 'disabled');
+  var button = $('#use_current_location_button');
+  button.attr('disabled', 'disabled').addClass('ui-state-disabled');
   $('#use_current_location_button').click(function() {
     var location = $('#location');
     var lat = location.data('lat');
@@ -85,7 +87,8 @@ function resetDialog() {
   $('#create_saved_location_lightbox #latitude').val('');
   $('#create_saved_location_lightbox #longitude').val('');
   $('#location').text('Current location: Searching...');
-  $('#use_current_location_button').attr('disabled', 'disabled');
+  var button = $('#use_current_location_button');
+  button.attr('disabled', 'disabled').addClass('ui-state-disabled');
   errorCount=0;
 }
 
