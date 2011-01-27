@@ -7,14 +7,18 @@ function findLocation() {
       maximumAge : 60000
     });
   } else {
-    $('div.location').text('Current location: Your browser sucks');
+    $('#location').text('Current location: Your browser sucks');
   }
 }
 
 function successCallback(p) {
   var lon = p.coords.longitude.toFixed(6);
   var lat = p.coords.latitude.toFixed(6);
-  $('div.location').text('Current location: Lat=' + lat + ', Lon=' + lon);
+  var location = $('#location');
+  location.text('Current location: Lat=' + lat + ', Lon=' + lon);
+  location.data('lat', lat);
+  location.data('lon', lon);
+  $('#use_current_location_button').removeAttr('disabled');
 }
 
 function errorCallback(p) {
@@ -22,11 +26,20 @@ function errorCallback(p) {
     findLocation();
   }
   else {
-    $('div.location').text('Current location: The Moon');
+    $('#location').text('Current location: The Moon');
   }
 }
 
 $(document).ready(function() {
+  $('#use_current_location_button').attr('disabled', 'disabled');
+  $('#use_current_location_button').click(function() {
+    var location = $('#location');
+    var lat = location.data('lat');
+    var lon = location.data('lon');
+    $('#create_saved_location_lightbox #latitude').val(lat);
+    $('#create_saved_location_lightbox #longitude').val(lon);
+  });
+
   $.get('/user/profile/timezones', function(data) {
     options = JSON.parse(data);
     var select_option = $('#user_timezone_select');
@@ -43,8 +56,6 @@ $(document).ready(function() {
 
   $('#create_saved_location_lightbox').dialog({
     autoOpen: false,
-    height: 375,
-    width: 375,
     modal: true,
     buttons: {
       Save: function() {
@@ -73,7 +84,8 @@ function resetDialog() {
   $('#create_saved_location_lightbox #name').val('');
   $('#create_saved_location_lightbox #latitude').val('');
   $('#create_saved_location_lightbox #longitude').val('');
-  $('div.location').text('Current location: Searching...');
+  $('#location').text('Current location: Searching...');
+  $('#use_current_location_button').attr('disabled', 'disabled');
   errorCount=0;
 }
 
