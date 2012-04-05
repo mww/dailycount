@@ -1,5 +1,5 @@
-application: dailypcount
-version: 10
+application: dailypcounthrd
+version: 11
 runtime: python
 api_version: 1
 
